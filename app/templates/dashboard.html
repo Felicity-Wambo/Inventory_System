@@ -1,0 +1,182 @@
+<!-- app/templates/dashboard.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - Inventory</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, sans-serif; background: #f3f4f6; color: #111827; }
+        header {
+            background: white; padding: 16px 32px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        h1 { font-size: 20px; color: #1e40af; }
+        .container { padding: 32px; max-width: 1400px; margin: 0 auto; }
+        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+        .stat {
+            background: white; padding: 20px; border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .stat-label { color: #6b7280; font-size: 13px; }
+        .stat-value { font-size: 28px; font-weight: 700; color: #1e40af; margin-top: 4px; }
+        .card { background: white; border-radius: 12px; padding: 24px; margin-bottom: 24px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #e5e7eb; }
+        th { color: #6b7280; font-weight: 500; font-size: 13px; text-transform: uppercase; }
+        .btn {
+            padding: 8px 16px; border-radius: 8px; border: none;
+            background: #1e40af; color: white; cursor: pointer; font-size: 14px;
+        }
+        .btn-danger { background: #dc2626; }
+        .btn-warn { background: #f59e0b; }
+        .reorder { color: #dc2626; font-weight: 600; }
+        .ok { color: #059669; }
+        input, select {
+            padding: 8px 12px; border: 1px solid #d1d5db;
+            border-radius: 6px; font-size: 14px; margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>📦 Inventory Dashboard</h1>
+        <div>
+            <span id="userInfo" style="margin-right: 16px; color: #6b7280;"></span>
+            <button class="btn" onclick="logout()">Logout</button>
+        </div>
+    </header>
+    <div class="container">
+        <div class="stats">
+            <div class="stat"><div class="stat-label">Total Products</div><div class="stat-value" id="totalProducts">-</div></div>
+            <div class="stat"><div class="stat-label">Total Stock</div><div class="stat-value" id="totalStock">-</div></div>
+            <div class="stat"><div class="stat-label">Low Stock Items</div><div class="stat-value" id="lowStock" style="color:#dc2626">-</div></div>
+            <div class="stat"><div class="stat-label">Inventory Value</div><div class="stat-value" id="totalValue">-</div></div>
+        </div>
+
+        <div class="card">
+            <h2 style="margin-bottom: 16px;">Products</h2>
+            <input type="text" id="searchBox" placeholder="Search by name/SKU/barcode..." style="width: 300px;">
+            <button class="btn" onclick="loadProducts()">Search</button>
+            <button class="btn" style="background: #059669;" onclick="scanBarcode()">📷 Scan Barcode</button>
+            <table style="margin-top: 16px;">
+                <thead>
+                    <tr>
+                        <th>SKU</th><th>Name</th><th>Barcode</th><th>Stock</th>
+                        <th>Price</th><th>Value</th><th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="productsTable"></tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2 style="margin-bottom: 16px;">Export Reports</h2>
+            <a class="btn" href="#" onclick="downloadWithAuth('/api/reports/inventory/pdf')">📄 Inventory PDF</a>
+            <a class="btn" href="#" onclick="downloadWithAuth('/api/reports/inventory/csv')">📊 Inventory CSV</a>
+            <a class="btn" href="#" onclick="downloadWithAuth('/api/reports/transactions/csv')">📊 Transactions CSV</a>
+            <a class="btn" href="#" onclick="downloadWithAuth('/api/reports/low-stock/pdf')">⚠️ Low Stock PDF</a>
+        </div>
+
+        <div class="card">
+            <h2 style="margin-bottom: 16px;">Bulk Import</h2>
+            <input type="file" id="csvFile" accept=".csv">
+            <button class="btn" onclick="uploadCSV()">Import Products CSV</button>
+            <div id="importResult" style="margin-top: 12px;"></div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = '/';
+
+        const headers = { 'Authorization': `Bearer ${token}` };
+
+        async function loadUser() {
+            const res = await fetch('/api/auth/me', { headers });
+            if (!res.ok) return logout();
+            const u = await res.json();
+            document.getElementById('userInfo').textContent = `${u.full_name} (${u.role})`;
+        }
+
+        async function loadProducts() {
+            const q = document.getElementById('searchBox').value;
+            const url = q ? `/api/products?q=${encodeURIComponent(q)}` : '/api/products';
+            const res = await fetch(url, { headers });
+            if (!res.ok) return logout();
+            const products = await res.json();
+
+            const tbody = document.getElementById('productsTable');
+            let totalStock = 0, totalValue = 0, lowStock = 0;
+            tbody.innerHTML = products.map(p => {
+                totalStock += p.total_stock;
+                totalValue += p.total_stock * p.unit_price;
+                if (p.needs_reorder) lowStock++;
+                return `<tr>
+                    <td>${p.sku}</td>
+                    <td>${p.name}</td>
+                    <td>${p.barcode || '-'}</td>
+                    <td>${p.total_stock}</td>
+                    <td>$${p.unit_price.toFixed(2)}</td>
+                    <td>$${(p.total_stock * p.unit_price).toFixed(2)}</td>
+                    <td class="${p.needs_reorder ? 'reorder' : 'ok'}">
+                        ${p.needs_reorder ? '⚠️ REORDER' : '✓ OK'}
+                    </td>
+                </tr>`;
+            }).join('');
+
+            document.getElementById('totalProducts').textContent = products.length;
+            document.getElementById('totalStock').textContent = totalStock;
+            document.getElementById('totalValue').textContent = '$' + totalValue.toFixed(2);
+            document.getElementById('lowStock').textContent = lowStock;
+        }
+
+        async function scanBarcode() {
+            const code = prompt('Enter barcode (or use scan endpoint):');
+            if (!code) return;
+            const res = await fetch(`/api/products/barcode/${code}`, { headers });
+            if (res.ok) {
+                const p = await res.json();
+                alert(`Found: ${p.name}\nSKU: ${p.sku}\nTotal Stock: ${p.total_stock}`);
+            } else {
+                alert('Product not found');
+            }
+        }
+
+        async function downloadWithAuth(url) {
+            const res = await fetch(url, { headers });
+            const blob = await res.blob();
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = url.split('/').pop();
+            a.click();
+        }
+
+        async function uploadCSV() {
+            const file = document.getElementById('csvFile').files[0];
+            if (!file) return alert('Select a file');
+            const fd = new FormData();
+            fd.append('file', file);
+            const res = await fetch('/api/bulk/import/products', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: fd
+            });
+            const data = await res.json();
+            document.getElementById('importResult').innerHTML =
+                `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            loadProducts();
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/';
+        }
+
+        loadUser();
+        loadProducts();
+    </script>
+</body>
+</html>
