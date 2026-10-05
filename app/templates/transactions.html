@@ -1,0 +1,1242 @@
+{% extends "base.html" %}
+
+{% block title %}Transactions | Inventory Management System{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+
+    <div>
+        <h1>Transactions</h1>
+        <p>Track all inventory movements and stock changes.</p>
+    </div>
+
+    <div class="page-header-actions">
+
+        <button class="btn btn-primary" onclick="openTransactionModal()">
+            <i class="fa-solid fa-plus"></i>
+            New Transaction
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- STATISTICS -->
+
+<div class="stats-grid">
+
+    <div class="stat-card">
+
+        <div class="stat-icon blue">
+            <i class="fa-solid fa-receipt"></i>
+        </div>
+
+        <div class="stat-content">
+
+            <span class="stat-label">Total Transactions</span>
+
+            <h2 id="totalTransactions">0</h2>
+
+            <p class="stat-description">
+                <i class="fa-solid fa-list"></i>
+                All recorded transactions
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <div class="stat-icon green">
+            <i class="fa-solid fa-arrow-down"></i>
+        </div>
+
+        <div class="stat-content">
+
+            <span class="stat-label">Stock In</span>
+
+            <h2 id="stockIn">0</h2>
+
+            <p class="stat-description">
+                <i class="fa-solid fa-box"></i>
+                Items received
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <div class="stat-icon orange">
+            <i class="fa-solid fa-arrow-up"></i>
+        </div>
+
+        <div class="stat-content">
+
+            <span class="stat-label">Stock Out</span>
+
+            <h2 id="stockOut">0</h2>
+
+            <p class="stat-description">
+                <i class="fa-solid fa-truck"></i>
+                Items removed
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <div class="stat-icon purple">
+            <i class="fa-solid fa-sliders"></i>
+        </div>
+
+        <div class="stat-content">
+
+            <span class="stat-label">Adjustments</span>
+
+            <h2 id="adjustments">0</h2>
+
+            <p class="stat-description">
+                <i class="fa-solid fa-rotate"></i>
+                Stock corrections
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- TRANSACTIONS TABLE -->
+
+<div class="dashboard-card">
+
+    <div class="card-header">
+
+        <div>
+
+            <h2>Transaction History</h2>
+
+            <p>
+                Review recent inventory activity.
+            </p>
+
+        </div>
+
+
+        <div
+            style="
+                display:flex;
+                gap:10px;
+                align-items:center;
+            "
+        >
+
+            <select
+                id="transactionFilter"
+                onchange="filterTransactions()"
+                style="
+                    height:40px;
+                    padding:0 12px;
+                    border:1px solid #e2e8f0;
+                    border-radius:8px;
+                    color:#334155;
+                    background:white;
+                "
+            >
+
+                <option value="all">
+                    All Transactions
+                </option>
+
+                <option value="in">
+                    Stock In
+                </option>
+
+                <option value="out">
+                    Stock Out
+                </option>
+
+                <option value="adjustment">
+                    Adjustments
+                </option>
+
+            </select>
+
+
+            <div
+                class="topbar-search"
+                style="width:230px;"
+            >
+
+                <i class="fa-solid fa-magnifying-glass"></i>
+
+                <input
+                    type="text"
+                    id="transactionSearch"
+                    placeholder="Search transactions..."
+                    oninput="filterTransactions()"
+                >
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div style="overflow-x:auto;">
+
+        <table
+            style="
+                width:100%;
+                border-collapse:collapse;
+            "
+        >
+
+            <thead>
+
+                <tr
+                    style="
+                        border-bottom:1px solid #e2e8f0;
+                        text-align:left;
+                    "
+                >
+
+                    <th style="padding:14px 20px;">
+                        Transaction
+                    </th>
+
+                    <th style="padding:14px 20px;">
+                        Product
+                    </th>
+
+                    <th style="padding:14px 20px;">
+                        Type
+                    </th>
+
+                    <th style="padding:14px 20px;">
+                        Quantity
+                    </th>
+
+                    <th style="padding:14px 20px;">
+                        Location
+                    </th>
+
+                    <th style="padding:14px 20px;">
+                        Date
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody id="transactionsTable">
+
+                <tr>
+
+                    <td
+                        colspan="6"
+                        style="
+                            text-align:center;
+                            padding:50px;
+                            color:#64748b;
+                        "
+                    >
+
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+
+                        Loading transactions...
+
+                    </td>
+
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+<!-- NEW TRANSACTION MODAL -->
+
+<div
+    id="transactionModal"
+    style="
+        display:none;
+        position:fixed;
+        inset:0;
+        background:rgba(15,23,42,.55);
+        z-index:999;
+        align-items:center;
+        justify-content:center;
+        padding:20px;
+    "
+>
+
+    <div
+        style="
+            width:100%;
+            max-width:500px;
+            background:white;
+            border-radius:16px;
+            overflow:hidden;
+            box-shadow:0 20px 50px rgba(15,23,42,.2);
+        "
+    >
+
+        <div
+            style="
+                padding:20px;
+                border-bottom:1px solid #e2e8f0;
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+            "
+        >
+
+            <div>
+
+                <h2 style="font-size:18px;">
+                    New Transaction
+                </h2>
+
+                <p
+                    style="
+                        margin-top:4px;
+                        font-size:12px;
+                        color:#64748b;
+                    "
+                >
+                    Record an inventory movement.
+                </p>
+
+            </div>
+
+
+            <button
+                onclick="closeTransactionModal()"
+                style="
+                    width:34px;
+                    height:34px;
+                    border:none;
+                    border-radius:8px;
+                    background:#f1f5f9;
+                    cursor:pointer;
+                "
+            >
+
+                <i class="fa-solid fa-xmark"></i>
+
+            </button>
+
+        </div>
+
+
+        <form
+            id="transactionForm"
+            style="padding:20px;"
+        >
+
+            <div style="margin-bottom:16px;">
+
+                <label
+                    style="
+                        display:block;
+                        font-size:12px;
+                        font-weight:600;
+                    "
+                >
+                    Product ID
+                </label>
+
+                <input
+                    type="number"
+                    id="transactionProduct"
+                    required
+                    placeholder="Enter product ID"
+                    style="
+                        width:100%;
+                        height:42px;
+                        margin-top:6px;
+                        padding:0 12px;
+                        border:1px solid #e2e8f0;
+                        border-radius:8px;
+                    "
+                >
+
+            </div>
+
+
+            <div style="margin-bottom:16px;">
+
+                <label
+                    style="
+                        display:block;
+                        font-size:12px;
+                        font-weight:600;
+                    "
+                >
+                    Transaction Type
+                </label>
+
+                <select
+                    id="transactionType"
+                    required
+                    style="
+                        width:100%;
+                        height:42px;
+                        margin-top:6px;
+                        padding:0 12px;
+                        border:1px solid #e2e8f0;
+                        border-radius:8px;
+                        background:white;
+                    "
+                >
+
+                    <option value="">
+                        Select transaction type
+                    </option>
+
+                    <option value="in">
+                        Stock In
+                    </option>
+
+                    <option value="out">
+                        Stock Out
+                    </option>
+
+                    <option value="adjustment">
+                        Adjustment
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div style="margin-bottom:16px;">
+
+                <label
+                    style="
+                        display:block;
+                        font-size:12px;
+                        font-weight:600;
+                    "
+                >
+                    Quantity
+                </label>
+
+                <input
+                    type="number"
+                    id="transactionQuantity"
+                    min="1"
+                    required
+                    placeholder="Enter quantity"
+                    style="
+                        width:100%;
+                        height:42px;
+                        margin-top:6px;
+                        padding:0 12px;
+                        border:1px solid #e2e8f0;
+                        border-radius:8px;
+                    "
+                >
+
+            </div>
+
+
+            <div style="margin-bottom:16px;">
+
+                <label
+                    style="
+                        display:block;
+                        font-size:12px;
+                        font-weight:600;
+                    "
+                >
+                    Location ID
+                </label>
+
+                <input
+                    type="number"
+                    id="transactionLocation"
+                    required
+                    placeholder="Enter location ID"
+                    style="
+                        width:100%;
+                        height:42px;
+                        margin-top:6px;
+                        padding:0 12px;
+                        border:1px solid #e2e8f0;
+                        border-radius:8px;
+                    "
+                >
+
+            </div>
+
+
+            <div
+                style="
+                    display:flex;
+                    justify-content:flex-end;
+                    gap:10px;
+                    margin-top:24px;
+                "
+            >
+
+                <button
+                    type="button"
+                    class="btn"
+                    onclick="closeTransactionModal()"
+                    style="
+                        background:#f1f5f9;
+                        color:#475569;
+                    "
+                >
+                    Cancel
+                </button>
+
+
+                <button
+                    type="submit"
+                    class="btn btn-primary"
+                >
+
+                    <i class="fa-solid fa-check"></i>
+
+                    Save Transaction
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+<script>
+
+let allTransactions = [];
+
+
+/* =========================================
+   LOAD TRANSACTIONS
+   ========================================= */
+
+async function loadTransactions() {
+
+    const token =
+        localStorage.getItem("access_token");
+
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/transactions",
+                {
+                    headers: token
+                        ? {
+                            "Authorization":
+                                "Bearer " + token
+                        }
+                        : {}
+                }
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Unable to load transactions"
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        allTransactions =
+            Array.isArray(data)
+                ? data
+                : (data.items || []);
+
+
+        updateTransactionStats();
+
+        renderTransactions(
+            allTransactions
+        );
+
+
+    } catch (error) {
+
+        console.error(error);
+
+
+        document.getElementById(
+            "transactionsTable"
+        ).innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="6"
+                    style="
+                        text-align:center;
+                        padding:50px;
+                        color:#64748b;
+                    "
+                >
+
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+
+                    <br><br>
+
+                    Unable to load transactions.
+
+                </td>
+
+            </tr>
+
+        `;
+
+    }
+
+}
+
+
+/* =========================================
+   STATISTICS
+   ========================================= */
+
+function updateTransactionStats() {
+
+    let stockIn = 0;
+
+    let stockOut = 0;
+
+    let adjustments = 0;
+
+
+    allTransactions.forEach(transaction => {
+
+        const type =
+            String(
+                transaction.type ||
+                transaction.transaction_type ||
+                ""
+            ).toLowerCase();
+
+
+        if (
+            type === "in" ||
+            type === "stock_in" ||
+            type === "purchase"
+        ) {
+
+            stockIn++;
+
+        } else if (
+            type === "out" ||
+            type === "stock_out" ||
+            type === "sale"
+        ) {
+
+            stockOut++;
+
+        } else {
+
+            adjustments++;
+
+        }
+
+    });
+
+
+    document.getElementById(
+        "totalTransactions"
+    ).textContent =
+        allTransactions.length;
+
+
+    document.getElementById(
+        "stockIn"
+    ).textContent =
+        stockIn;
+
+
+    document.getElementById(
+        "stockOut"
+    ).textContent =
+        stockOut;
+
+
+    document.getElementById(
+        "adjustments"
+    ).textContent =
+        adjustments;
+
+}
+
+
+/* =========================================
+   RENDER
+   ========================================= */
+
+function renderTransactions(transactions) {
+
+    const table =
+        document.getElementById(
+            "transactionsTable"
+        );
+
+
+    if (!transactions.length) {
+
+        table.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="6"
+                    style="
+                        text-align:center;
+                        padding:50px;
+                        color:#64748b;
+                    "
+                >
+
+                    <i
+                        class="fa-solid fa-receipt"
+                        style="
+                            font-size:30px;
+                            margin-bottom:12px;
+                        "
+                    ></i>
+
+                    <br>
+
+                    No transactions found.
+
+                </td>
+
+            </tr>
+
+        `;
+
+        return;
+
+    }
+
+
+    table.innerHTML =
+        transactions.map(
+            (transaction, index) => {
+
+                const type =
+                    String(
+                        transaction.type ||
+                        transaction.transaction_type ||
+                        "adjustment"
+                    ).toLowerCase();
+
+
+                let label =
+                    "Adjustment";
+
+                let icon =
+                    "fa-sliders";
+
+                let color =
+                    "#7c3aed";
+
+                let background =
+                    "#f5f3ff";
+
+
+                if (
+                    type === "in" ||
+                    type === "stock_in" ||
+                    type === "purchase"
+                ) {
+
+                    label = "Stock In";
+
+                    icon = "fa-arrow-down";
+
+                    color = "#059669";
+
+                    background = "#ecfdf5";
+
+                }
+
+
+                if (
+                    type === "out" ||
+                    type === "stock_out" ||
+                    type === "sale"
+                ) {
+
+                    label = "Stock Out";
+
+                    icon = "fa-arrow-up";
+
+                    color = "#dc2626";
+
+                    background = "#fef2f2";
+
+                }
+
+
+                const product =
+                    transaction.product_name ||
+                    transaction.product ||
+                    transaction.product_id ||
+                    "-";
+
+
+                const location =
+                    transaction.location_name ||
+                    transaction.location ||
+                    transaction.location_id ||
+                    "-";
+
+
+                const quantity =
+                    transaction.quantity ??
+                    transaction.amount ??
+                    0;
+
+
+                const date =
+                    transaction.created_at ||
+                    transaction.date ||
+                    transaction.timestamp ||
+                    "-";
+
+
+                return `
+
+                    <tr
+                        style="
+                            border-bottom:1px solid #f1f5f9;
+                        "
+                    >
+
+                        <td style="padding:16px 20px;">
+
+                            <strong>
+                                #${transaction.id || index + 1}
+                            </strong>
+
+                        </td>
+
+
+                        <td style="padding:16px 20px;">
+
+                            ${escapeHtml(product)}
+
+                        </td>
+
+
+                        <td style="padding:16px 20px;">
+
+                            <span
+                                style="
+                                    display:inline-flex;
+                                    align-items:center;
+                                    gap:6px;
+                                    padding:6px 10px;
+                                    border-radius:20px;
+                                    font-size:10px;
+                                    font-weight:700;
+                                    color:${color};
+                                    background:${background};
+                                "
+                            >
+
+                                <i class="fa-solid ${icon}"></i>
+
+                                ${label}
+
+                            </span>
+
+                        </td>
+
+
+                        <td
+                            style="
+                                padding:16px 20px;
+                                font-weight:700;
+                            "
+                        >
+
+                            ${Number(quantity).toLocaleString()}
+
+                        </td>
+
+
+                        <td style="padding:16px 20px;">
+
+                            ${escapeHtml(location)}
+
+                        </td>
+
+
+                        <td
+                            style="
+                                padding:16px 20px;
+                                color:#64748b;
+                                font-size:12px;
+                            "
+                        >
+
+                            ${formatDate(date)}
+
+                        </td>
+
+                    </tr>
+
+                `;
+
+            }
+        ).join("");
+
+}
+
+
+/* =========================================
+   FILTER
+   ========================================= */
+
+function filterTransactions() {
+
+    const search =
+        document.getElementById(
+            "transactionSearch"
+        )
+        .value
+        .toLowerCase();
+
+
+    const type =
+        document.getElementById(
+            "transactionFilter"
+        ).value;
+
+
+    const filtered =
+        allTransactions.filter(
+            transaction => {
+
+                const transactionType =
+                    String(
+                        transaction.type ||
+                        transaction.transaction_type ||
+                        ""
+                    ).toLowerCase();
+
+
+                const product =
+                    String(
+                        transaction.product_name ||
+                        transaction.product ||
+                        transaction.product_id ||
+                        ""
+                    ).toLowerCase();
+
+
+                const location =
+                    String(
+                        transaction.location_name ||
+                        transaction.location ||
+                        transaction.location_id ||
+                        ""
+                    ).toLowerCase();
+
+
+                const matchesSearch =
+                    product.includes(search) ||
+                    location.includes(search);
+
+
+                let matchesType = true;
+
+
+                if (type === "in") {
+
+                    matchesType =
+                        transactionType === "in" ||
+                        transactionType === "stock_in" ||
+                        transactionType === "purchase";
+
+                }
+
+
+                if (type === "out") {
+
+                    matchesType =
+                        transactionType === "out" ||
+                        transactionType === "stock_out" ||
+                        transactionType === "sale";
+
+                }
+
+
+                if (type === "adjustment") {
+
+                    matchesType =
+                        ![
+                            "in",
+                            "stock_in",
+                            "purchase",
+                            "out",
+                            "stock_out",
+                            "sale"
+                        ].includes(transactionType);
+
+                }
+
+
+                return (
+                    matchesSearch &&
+                    matchesType
+                );
+
+            }
+        );
+
+
+    renderTransactions(filtered);
+
+}
+
+
+/* =========================================
+   MODAL
+   ========================================= */
+
+function openTransactionModal() {
+
+    document.getElementById(
+        "transactionModal"
+    ).style.display = "flex";
+
+}
+
+
+function closeTransactionModal() {
+
+    document.getElementById(
+        "transactionModal"
+    ).style.display = "none";
+
+}
+
+
+/* =========================================
+   CREATE TRANSACTION
+   ========================================= */
+
+document
+    .getElementById("transactionForm")
+    .addEventListener(
+        "submit",
+        async function(event) {
+
+            event.preventDefault();
+
+
+            const token =
+                localStorage.getItem(
+                    "access_token"
+                );
+
+
+            const payload = {
+
+                product_id:
+                    Number(
+                        document.getElementById(
+                            "transactionProduct"
+                        ).value
+                    ),
+
+                type:
+                    document.getElementById(
+                        "transactionType"
+                    ).value,
+
+                quantity:
+                    Number(
+                        document.getElementById(
+                            "transactionQuantity"
+                        ).value
+                    ),
+
+                location_id:
+                    Number(
+                        document.getElementById(
+                            "transactionLocation"
+                        ).value
+                    )
+
+            };
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/api/transactions",
+                        {
+                            method: "POST",
+
+                            headers: {
+
+                                "Content-Type":
+                                    "application/json",
+
+                                ...(token
+                                    ? {
+                                        "Authorization":
+                                            "Bearer " +
+                                            token
+                                    }
+                                    : {})
+
+                            },
+
+                            body:
+                                JSON.stringify(
+                                    payload
+                                )
+
+                        }
+                    );
+
+
+                if (!response.ok) {
+
+                    const error =
+                        await response.json();
+
+
+                    alert(
+                        error.detail ||
+                        "Unable to create transaction."
+                    );
+
+                    return;
+
+                }
+
+
+                closeTransactionModal();
+
+
+                document
+                    .getElementById(
+                        "transactionForm"
+                    )
+                    .reset();
+
+
+                await loadTransactions();
+
+
+            } catch (error) {
+
+                console.error(error);
+
+                alert(
+                    "Unable to connect to the server."
+                );
+
+            }
+
+        }
+    );
+
+
+/* =========================================
+   HELPERS
+   ========================================= */
+
+function formatDate(value) {
+
+    if (
+        !value ||
+        value === "-"
+    ) {
+
+        return "-";
+
+    }
+
+
+    const date =
+        new Date(value);
+
+
+    if (isNaN(date.getTime())) {
+
+        return escapeHtml(value);
+
+    }
+
+
+    return date.toLocaleString();
+
+}
+
+
+function escapeHtml(value) {
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+
+/* =========================================
+   START
+   ========================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    loadTransactions
+);
+
+</script>
+
+{% endblock %}

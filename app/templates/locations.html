@@ -1,0 +1,956 @@
+{% extends "base.html" %}
+
+{% block title %}Locations | Inventory Management System{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h1>Locations</h1>
+        <p>Manage your warehouses, stores and inventory locations.</p>
+    </div>
+
+    <div class="page-header-actions">
+        <button class="btn btn-primary" onclick="openLocationModal()">
+            <i class="fa-solid fa-plus"></i>
+            Add Location
+        </button>
+    </div>
+</div>
+
+
+<!-- LOCATION STATISTICS -->
+
+<div class="stats-grid">
+
+    <div class="stat-card">
+
+        <div class="stat-icon blue">
+            <i class="fa-solid fa-location-dot"></i>
+        </div>
+
+        <div class="stat-content">
+            <span class="stat-label">Total Locations</span>
+
+            <h2 id="totalLocations">0</h2>
+
+            <p class="stat-description">
+                <i class="fa-solid fa-building"></i>
+                Registered locations
+            </p>
+        </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <div class="stat-icon green">
+            <i class="fa-solid fa-warehouse"></i>
+        </div>
+
+        <div class="stat-content">
+            <span class="stat-label">Active Locations</span>
+
+            <h2 id="activeLocations">0</h2>
+
+            <p class="stat-description">
+                <i class="fa-solid fa-circle-check"></i>
+                Currently active
+            </p>
+        </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <div class="stat-icon purple">
+            <i class="fa-solid fa-boxes-stacked"></i>
+        </div>
+
+        <div class="stat-content">
+            <span class="stat-label">Inventory Units</span>
+
+            <h2 id="totalUnits">0</h2>
+
+            <p class="stat-description">
+                <i class="fa-solid fa-cubes"></i>
+                Across all locations
+            </p>
+        </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <div class="stat-icon orange">
+            <i class="fa-solid fa-chart-pie"></i>
+        </div>
+
+        <div class="stat-content">
+            <span class="stat-label">Locations Used</span>
+
+            <h2 id="usedLocations">0</h2>
+
+            <p class="stat-description">
+                <i class="fa-solid fa-chart-line"></i>
+                With inventory
+            </p>
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- LOCATIONS -->
+
+<div class="dashboard-card">
+
+    <div class="card-header">
+
+        <div>
+            <h2>Inventory Locations</h2>
+
+            <p>
+                View and manage where your inventory is stored.
+            </p>
+        </div>
+
+        <div class="topbar-search" style="width:260px;">
+
+            <i class="fa-solid fa-magnifying-glass"></i>
+
+            <input
+                type="text"
+                id="locationSearch"
+                placeholder="Search locations..."
+                oninput="filterLocations()"
+            >
+
+        </div>
+
+    </div>
+
+
+    <div id="locationsContainer"
+         style="
+            padding:20px;
+            display:grid;
+            grid-template-columns:repeat(3, 1fr);
+            gap:18px;
+         ">
+
+        <div class="empty-state"
+             style="grid-column:1/-1;">
+
+            <div class="empty-icon">
+
+                <i class="fa-solid fa-spinner fa-spin"></i>
+
+            </div>
+
+            <h3>Loading locations...</h3>
+
+            <p>Please wait.</p>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ADD LOCATION MODAL -->
+
+<div
+    id="locationModal"
+    style="
+        display:none;
+        position:fixed;
+        inset:0;
+        background:rgba(15,23,42,.55);
+        z-index:999;
+        align-items:center;
+        justify-content:center;
+        padding:20px;
+    "
+>
+
+    <div style="
+        width:100%;
+        max-width:480px;
+        background:white;
+        border-radius:16px;
+        box-shadow:0 20px 50px rgba(15,23,42,.2);
+        overflow:hidden;
+    ">
+
+        <div style="
+            padding:20px;
+            border-bottom:1px solid #e2e8f0;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+        ">
+
+            <div>
+
+                <h2 style="
+                    font-size:18px;
+                    color:#0f172a;
+                ">
+                    Add Location
+                </h2>
+
+                <p style="
+                    margin-top:4px;
+                    font-size:12px;
+                    color:#64748b;
+                ">
+                    Create a new inventory location.
+                </p>
+
+            </div>
+
+
+            <button
+                onclick="closeLocationModal()"
+                style="
+                    width:34px;
+                    height:34px;
+                    border:none;
+                    border-radius:8px;
+                    background:#f1f5f9;
+                    cursor:pointer;
+                "
+            >
+
+                <i class="fa-solid fa-xmark"></i>
+
+            </button>
+
+        </div>
+
+
+        <form
+            id="locationForm"
+            style="padding:20px;"
+        >
+
+            <div style="margin-bottom:16px;">
+
+                <label
+                    for="locationName"
+                    style="
+                        display:block;
+                        font-size:12px;
+                        font-weight:600;
+                        color:#334155;
+                    "
+                >
+                    Location Name
+                </label>
+
+                <input
+                    type="text"
+                    id="locationName"
+                    required
+                    placeholder="e.g. Main Warehouse"
+                    style="
+                        width:100%;
+                        height:42px;
+                        margin-top:6px;
+                        padding:0 12px;
+                        border:1px solid #e2e8f0;
+                        border-radius:8px;
+                        outline:none;
+                    "
+                >
+
+            </div>
+
+
+            <div style="margin-bottom:16px;">
+
+                <label
+                    for="locationCode"
+                    style="
+                        display:block;
+                        font-size:12px;
+                        font-weight:600;
+                        color:#334155;
+                    "
+                >
+                    Location Code
+                </label>
+
+                <input
+                    type="text"
+                    id="locationCode"
+                    required
+                    placeholder="e.g. MAIN"
+                    style="
+                        width:100%;
+                        height:42px;
+                        margin-top:6px;
+                        padding:0 12px;
+                        border:1px solid #e2e8f0;
+                        border-radius:8px;
+                        outline:none;
+                        text-transform:uppercase;
+                    "
+                >
+
+            </div>
+
+
+            <div style="
+                display:flex;
+                justify-content:flex-end;
+                gap:10px;
+                margin-top:24px;
+            ">
+
+                <button
+                    type="button"
+                    class="btn"
+                    onclick="closeLocationModal()"
+                    style="
+                        background:#f1f5f9;
+                        color:#475569;
+                    "
+                >
+                    Cancel
+                </button>
+
+
+                <button
+                    type="submit"
+                    class="btn btn-primary"
+                >
+
+                    <i class="fa-solid fa-check"></i>
+
+                    Save Location
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+<script>
+
+let allLocations = [];
+
+
+/* =========================================
+   LOAD LOCATIONS
+   ========================================= */
+
+async function loadLocations() {
+
+    const token =
+        localStorage.getItem("access_token");
+
+
+    try {
+
+        const response = await fetch(
+            "/api/locations",
+            {
+                headers: token
+                    ? {
+                        "Authorization":
+                            "Bearer " + token
+                    }
+                    : {}
+            }
+        );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Unable to load locations"
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        allLocations =
+            Array.isArray(data)
+                ? data
+                : (data.items || []);
+
+
+        updateLocationStats();
+
+        renderLocations(allLocations);
+
+
+    } catch (error) {
+
+        console.error(error);
+
+
+        document.getElementById(
+            "locationsContainer"
+        ).innerHTML = `
+
+            <div
+                class="empty-state"
+                style="grid-column:1/-1;"
+            >
+
+                <div class="empty-icon">
+
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+
+                </div>
+
+                <h3>Unable to load locations</h3>
+
+                <p>
+                    Check your connection and try again.
+                </p>
+
+            </div>
+
+        `;
+
+    }
+
+}
+
+
+/* =========================================
+   STATISTICS
+   ========================================= */
+
+function updateLocationStats() {
+
+    document.getElementById(
+        "totalLocations"
+    ).textContent =
+        allLocations.length;
+
+
+    let active = 0;
+
+    let used = 0;
+
+    let units = 0;
+
+
+    allLocations.forEach(location => {
+
+        const isActive =
+            location.is_active ??
+            location.active ??
+            true;
+
+
+        if (isActive) {
+            active++;
+        }
+
+
+        const quantity = Number(
+            location.total_stock ??
+            location.stock_quantity ??
+            location.quantity ??
+            0
+        );
+
+
+        if (quantity > 0) {
+            used++;
+        }
+
+
+        units += quantity;
+
+    });
+
+
+    document.getElementById(
+        "activeLocations"
+    ).textContent = active;
+
+
+    document.getElementById(
+        "usedLocations"
+    ).textContent = used;
+
+
+    document.getElementById(
+        "totalUnits"
+    ).textContent =
+        units.toLocaleString();
+
+}
+
+
+/* =========================================
+   RENDER LOCATIONS
+   ========================================= */
+
+function renderLocations(locations) {
+
+    const container =
+        document.getElementById(
+            "locationsContainer"
+        );
+
+
+    if (!locations.length) {
+
+        container.innerHTML = `
+
+            <div
+                class="empty-state"
+                style="grid-column:1/-1;"
+            >
+
+                <div class="empty-icon">
+
+                    <i class="fa-solid fa-location-dot"></i>
+
+                </div>
+
+                <h3>No locations found</h3>
+
+                <p>
+                    Add your first inventory location.
+                </p>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    container.innerHTML =
+        locations.map(location => {
+
+            const name =
+                location.name ||
+                location.location_name ||
+                "Unnamed Location";
+
+
+            const code =
+                location.code ||
+                location.location_code ||
+                "-";
+
+
+            const quantity = Number(
+                location.total_stock ??
+                location.stock_quantity ??
+                location.quantity ??
+                0
+            );
+
+
+            const active =
+                location.is_active ??
+                location.active ??
+                true;
+
+
+            return `
+
+                <div
+                    class="dashboard-card"
+                    style="
+                        padding:0;
+                        overflow:hidden;
+                    "
+                >
+
+                    <div
+                        style="
+                            padding:20px;
+                        "
+                    >
+
+                        <div
+                            style="
+                                display:flex;
+                                align-items:center;
+                                justify-content:space-between;
+                            "
+                        >
+
+                            <div
+                                style="
+                                    width:48px;
+                                    height:48px;
+                                    border-radius:12px;
+                                    display:flex;
+                                    align-items:center;
+                                    justify-content:center;
+                                    background:#eff6ff;
+                                    color:#2563eb;
+                                    font-size:18px;
+                                "
+                            >
+
+                                <i class="fa-solid fa-warehouse"></i>
+
+                            </div>
+
+
+                            <span
+                                style="
+                                    padding:5px 9px;
+                                    border-radius:20px;
+                                    font-size:10px;
+                                    font-weight:700;
+                                    background:${active
+                                        ? "#ecfdf5"
+                                        : "#fef2f2"};
+                                    color:${active
+                                        ? "#059669"
+                                        : "#dc2626"};
+                                "
+                            >
+                                ${active
+                                    ? "Active"
+                                    : "Inactive"}
+                            </span>
+
+                        </div>
+
+
+                        <h3
+                            style="
+                                margin-top:18px;
+                                color:#0f172a;
+                                font-size:16px;
+                            "
+                        >
+                            ${escapeHtml(name)}
+                        </h3>
+
+
+                        <p
+                            style="
+                                margin-top:5px;
+                                color:#64748b;
+                                font-size:11px;
+                            "
+                        >
+                            Code:
+                            <strong>
+                                ${escapeHtml(code)}
+                            </strong>
+                        </p>
+
+
+                        <div
+                            style="
+                                margin-top:20px;
+                                padding-top:15px;
+                                border-top:1px solid #f1f5f9;
+                                display:flex;
+                                align-items:center;
+                                justify-content:space-between;
+                            "
+                        >
+
+                            <div>
+
+                                <span
+                                    style="
+                                        display:block;
+                                        color:#94a3b8;
+                                        font-size:10px;
+                                    "
+                                >
+                                    Inventory
+                                </span>
+
+                                <strong
+                                    style="
+                                        display:block;
+                                        margin-top:3px;
+                                        color:#0f172a;
+                                        font-size:17px;
+                                    "
+                                >
+                                    ${quantity.toLocaleString()}
+                                </strong>
+
+                            </div>
+
+
+                            <button
+                                onclick="viewLocation(${location.id})"
+                                class="btn"
+                                style="
+                                    height:34px;
+                                    padding:0 11px;
+                                    background:#eff6ff;
+                                    color:#2563eb;
+                                "
+                            >
+
+                                <i class="fa-solid fa-eye"></i>
+
+                                View Stock
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            `;
+
+        }).join("");
+
+}
+
+
+/* =========================================
+   SEARCH
+   ========================================= */
+
+function filterLocations() {
+
+    const search =
+        document.getElementById(
+            "locationSearch"
+        )
+        .value
+        .toLowerCase();
+
+
+    const filtered =
+        allLocations.filter(location => {
+
+            const name =
+                String(
+                    location.name ||
+                    location.location_name ||
+                    ""
+                ).toLowerCase();
+
+
+            const code =
+                String(
+                    location.code ||
+                    location.location_code ||
+                    ""
+                ).toLowerCase();
+
+
+            return (
+                name.includes(search) ||
+                code.includes(search)
+            );
+
+        });
+
+
+    renderLocations(filtered);
+
+}
+
+
+/* =========================================
+   MODAL
+   ========================================= */
+
+function openLocationModal() {
+
+    document.getElementById(
+        "locationModal"
+    ).style.display = "flex";
+
+}
+
+
+function closeLocationModal() {
+
+    document.getElementById(
+        "locationModal"
+    ).style.display = "none";
+
+}
+
+
+/* =========================================
+   CREATE LOCATION
+   ========================================= */
+
+document
+    .getElementById("locationForm")
+    .addEventListener(
+        "submit",
+        async function(event) {
+
+            event.preventDefault();
+
+
+            const token =
+                localStorage.getItem(
+                    "access_token"
+                );
+
+
+            const payload = {
+
+                name:
+                    document.getElementById(
+                        "locationName"
+                    ).value,
+
+                code:
+                    document.getElementById(
+                        "locationCode"
+                    ).value.toUpperCase()
+
+            };
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/api/locations",
+                        {
+                            method: "POST",
+
+                            headers: {
+
+                                "Content-Type":
+                                    "application/json",
+
+                                ...(token
+                                    ? {
+                                        "Authorization":
+                                            "Bearer " +
+                                            token
+                                    }
+                                    : {})
+
+                            },
+
+                            body:
+                                JSON.stringify(
+                                    payload
+                                )
+
+                        }
+                    );
+
+
+                if (!response.ok) {
+
+                    const error =
+                        await response.json();
+
+
+                    alert(
+                        error.detail ||
+                        "Unable to create location."
+                    );
+
+                    return;
+
+                }
+
+
+                closeLocationModal();
+
+
+                document
+                    .getElementById(
+                        "locationForm"
+                    )
+                    .reset();
+
+
+                await loadLocations();
+
+
+            } catch (error) {
+
+                console.error(error);
+
+                alert(
+                    "Unable to connect to the server."
+                );
+
+            }
+
+        }
+    );
+
+
+/* =========================================
+   VIEW LOCATION
+   ========================================= */
+
+function viewLocation(id) {
+
+    window.location.href =
+        "/locations/" + id;
+
+}
+
+
+/* =========================================
+   ESCAPE HTML
+   ========================================= */
+
+function escapeHtml(value) {
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+
+/* =========================================
+   START
+   ========================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    loadLocations
+);
+
+</script>
+
+{% endblock %}

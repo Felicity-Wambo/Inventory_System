@@ -1,0 +1,718 @@
+{% extends "base.html" %}
+
+{% block title %}Low Stock | Inventory Management System{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+
+    <div>
+        <h1>Low Stock</h1>
+        <p>Monitor products that need to be restocked.</p>
+    </div>
+
+    <div class="page-header-actions">
+
+        <button class="btn btn-primary" onclick="loadLowStock()">
+            <i class="fa-solid fa-rotate"></i>
+            Refresh
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- STATISTICS -->
+
+<div class="stats-grid">
+
+    <div class="stat-card">
+
+        <div class="stat-icon orange">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+
+        <div class="stat-content">
+
+            <span class="stat-label">Low Stock Items</span>
+
+            <h2 id="totalLowStock">0</h2>
+
+            <p class="stat-description">
+                Need restocking
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <div class="stat-icon red">
+            <i class="fa-solid fa-box-open"></i>
+        </div>
+
+        <div class="stat-content">
+
+            <span class="stat-label">Out of Stock</span>
+
+            <h2 id="outOfStock">0</h2>
+
+            <p class="stat-description">
+                Completely unavailable
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <div class="stat-icon blue">
+            <i class="fa-solid fa-boxes-stacked"></i>
+        </div>
+
+        <div class="stat-content">
+
+            <span class="stat-label">Units Remaining</span>
+
+            <h2 id="unitsRemaining">0</h2>
+
+            <p class="stat-description">
+                Current low-stock quantity
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <div class="stat-icon purple">
+            <i class="fa-solid fa-cart-shopping"></i>
+        </div>
+
+        <div class="stat-content">
+
+            <span class="stat-label">Restock Needed</span>
+
+            <h2 id="restockNeeded">0</h2>
+
+            <p class="stat-description">
+                Estimated units needed
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- LOW STOCK TABLE -->
+
+<div class="dashboard-card">
+
+    <div class="card-header">
+
+        <div>
+
+            <h2>Products Requiring Attention</h2>
+
+            <p>
+                Products that have reached or fallen below their minimum stock level.
+            </p>
+
+        </div>
+
+
+        <div
+            class="topbar-search"
+            style="width:240px;"
+        >
+
+            <i class="fa-solid fa-magnifying-glass"></i>
+
+            <input
+                type="text"
+                id="lowStockSearch"
+                placeholder="Search products..."
+                oninput="filterLowStock()"
+            >
+
+        </div>
+
+    </div>
+
+
+    <div style="overflow-x:auto;">
+
+        <table
+            style="
+                width:100%;
+                border-collapse:collapse;
+            "
+        >
+
+            <thead>
+
+                <tr
+                    style="
+                        border-bottom:1px solid #e2e8f0;
+                        text-align:left;
+                    "
+                >
+
+                    <th style="padding:14px 20px;">
+                        Product
+                    </th>
+
+                    <th style="padding:14px 20px;">
+                        SKU
+                    </th>
+
+                    <th style="padding:14px 20px;">
+                        Category
+                    </th>
+
+                    <th style="padding:14px 20px;">
+                        Current Stock
+                    </th>
+
+                    <th style="padding:14px 20px;">
+                        Minimum
+                    </th>
+
+                    <th style="padding:14px 20px;">
+                        Shortage
+                    </th>
+
+                    <th style="padding:14px 20px;">
+                        Status
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody id="lowStockTable">
+
+                <tr>
+
+                    <td
+                        colspan="7"
+                        style="
+                            text-align:center;
+                            padding:50px;
+                            color:#64748b;
+                        "
+                    >
+
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+
+                        Loading low stock items...
+
+                    </td>
+
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+<script>
+
+let allLowStock = [];
+
+
+/* =========================================
+   LOAD LOW STOCK
+   ========================================= */
+
+async function loadLowStock() {
+
+    const token =
+        localStorage.getItem("access_token");
+
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/stock/low",
+                {
+                    headers: token
+                        ? {
+                            "Authorization":
+                                "Bearer " + token
+                        }
+                        : {}
+                }
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Unable to load low stock"
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        allLowStock =
+            Array.isArray(data)
+                ? data
+                : (data.items || []);
+
+
+        updateLowStockStats();
+
+        renderLowStock(allLowStock);
+
+
+    } catch (error) {
+
+        console.error(error);
+
+
+        document.getElementById(
+            "lowStockTable"
+        ).innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="7"
+                    style="
+                        text-align:center;
+                        padding:50px;
+                        color:#64748b;
+                    "
+                >
+
+                    <i
+                        class="fa-solid fa-triangle-exclamation"
+                        style="font-size:28px;"
+                    ></i>
+
+                    <br><br>
+
+                    Unable to load low stock items.
+
+                </td>
+
+            </tr>
+
+        `;
+
+    }
+
+}
+
+
+/* =========================================
+   STATISTICS
+   ========================================= */
+
+function updateLowStockStats() {
+
+    let outOfStock = 0;
+
+    let unitsRemaining = 0;
+
+    let restockNeeded = 0;
+
+
+    allLowStock.forEach(item => {
+
+        const quantity =
+            Number(
+                item.quantity ??
+                item.stock ??
+                item.stock_quantity ??
+                0
+            );
+
+
+        const minimum =
+            Number(
+                item.minimum_stock ??
+                item.min_stock ??
+                item.reorder_level ??
+                0
+            );
+
+
+        if (quantity <= 0) {
+
+            outOfStock++;
+
+        }
+
+
+        unitsRemaining += quantity;
+
+
+        if (minimum > quantity) {
+
+            restockNeeded +=
+                minimum - quantity;
+
+        }
+
+    });
+
+
+    document.getElementById(
+        "totalLowStock"
+    ).textContent =
+        allLowStock.length;
+
+
+    document.getElementById(
+        "outOfStock"
+    ).textContent =
+        outOfStock;
+
+
+    document.getElementById(
+        "unitsRemaining"
+    ).textContent =
+        unitsRemaining.toLocaleString();
+
+
+    document.getElementById(
+        "restockNeeded"
+    ).textContent =
+        restockNeeded.toLocaleString();
+
+}
+
+
+/* =========================================
+   RENDER TABLE
+   ========================================= */
+
+function renderLowStock(items) {
+
+    const table =
+        document.getElementById(
+            "lowStockTable"
+        );
+
+
+    if (!items.length) {
+
+        table.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="7"
+                    style="
+                        text-align:center;
+                        padding:60px;
+                        color:#64748b;
+                    "
+                >
+
+                    <i
+                        class="fa-solid fa-circle-check"
+                        style="
+                            font-size:32px;
+                            color:#059669;
+                        "
+                    ></i>
+
+                    <br><br>
+
+                    <strong
+                        style="
+                            color:#0f172a;
+                            font-size:15px;
+                        "
+                    >
+                        All Stock Levels Are Healthy
+                    </strong>
+
+                    <br>
+
+                    No products currently require restocking.
+
+                </td>
+
+            </tr>
+
+        `;
+
+        return;
+
+    }
+
+
+    table.innerHTML =
+        items.map(item => {
+
+            const quantity =
+                Number(
+                    item.quantity ??
+                    item.stock ??
+                    item.stock_quantity ??
+                    0
+                );
+
+
+            const minimum =
+                Number(
+                    item.minimum_stock ??
+                    item.min_stock ??
+                    item.reorder_level ??
+                    0
+                );
+
+
+            const shortage =
+                Math.max(
+                    minimum - quantity,
+                    0
+                );
+
+
+            const isOut =
+                quantity <= 0;
+
+
+            const status =
+                isOut
+                    ? "Out of Stock"
+                    : "Low Stock";
+
+
+            const color =
+                isOut
+                    ? "#dc2626"
+                    : "#ea580c";
+
+
+            const background =
+                isOut
+                    ? "#fef2f2"
+                    : "#fff7ed";
+
+
+            return `
+
+                <tr
+                    style="
+                        border-bottom:1px solid #f1f5f9;
+                    "
+                >
+
+                    <td style="padding:16px 20px;">
+
+                        <strong>
+                            ${escapeHtml(
+                                item.name ||
+                                item.product_name ||
+                                "Unnamed Product"
+                            )}
+                        </strong>
+
+                    </td>
+
+
+                    <td
+                        style="
+                            padding:16px 20px;
+                            color:#64748b;
+                        "
+                    >
+
+                        ${escapeHtml(
+                            item.sku || "-"
+                        )}
+
+                    </td>
+
+
+                    <td style="padding:16px 20px;">
+
+                        ${escapeHtml(
+                            item.category || "-"
+                        )}
+
+                    </td>
+
+
+                    <td
+                        style="
+                            padding:16px 20px;
+                            font-weight:700;
+                            color:${color};
+                        "
+                    >
+
+                        ${quantity.toLocaleString()}
+
+                    </td>
+
+
+                    <td
+                        style="
+                            padding:16px 20px;
+                            color:#64748b;
+                        "
+                    >
+
+                        ${minimum.toLocaleString()}
+
+                    </td>
+
+
+                    <td
+                        style="
+                            padding:16px 20px;
+                            font-weight:700;
+                            color:#7c3aed;
+                        "
+                    >
+
+                        ${shortage.toLocaleString()}
+
+                    </td>
+
+
+                    <td style="padding:16px 20px;">
+
+                        <span
+                            style="
+                                display:inline-flex;
+                                align-items:center;
+                                gap:6px;
+                                padding:6px 10px;
+                                border-radius:20px;
+                                font-size:10px;
+                                font-weight:700;
+                                color:${color};
+                                background:${background};
+                            "
+                        >
+
+                            <i
+                                class="fa-solid fa-circle"
+                                style="font-size:6px;"
+                            ></i>
+
+                            ${status}
+
+                        </span>
+
+                    </td>
+
+                </tr>
+
+            `;
+
+        }).join("");
+
+}
+
+
+/* =========================================
+   SEARCH
+   ========================================= */
+
+function filterLowStock() {
+
+    const search =
+        document.getElementById(
+            "lowStockSearch"
+        )
+        .value
+        .toLowerCase();
+
+
+    const filtered =
+        allLowStock.filter(item => {
+
+            const name =
+                String(
+                    item.name ||
+                    item.product_name ||
+                    ""
+                ).toLowerCase();
+
+
+            const sku =
+                String(
+                    item.sku || ""
+                ).toLowerCase();
+
+
+            const category =
+                String(
+                    item.category || ""
+                ).toLowerCase();
+
+
+            return (
+                name.includes(search) ||
+                sku.includes(search) ||
+                category.includes(search)
+            );
+
+        });
+
+
+    renderLowStock(filtered);
+
+}
+
+
+/* =========================================
+   ESCAPE HTML
+   ========================================= */
+
+function escapeHtml(value) {
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+
+/* =========================================
+   START
+   ========================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    loadLowStock
+);
+
+</script>
+
+{% endblock %}

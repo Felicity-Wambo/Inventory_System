@@ -136,3 +136,45 @@ class Transaction(Base):
     user = relationship("User")
     from_location = relationship("Location", foreign_keys=[from_location_id])
     to_location = relationship("Location", foreign_keys=[to_location_id])
+
+from datetime import datetime
+
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from app.database import Base
+
+
+class PasswordResetToken(Base):
+    __tablename__ = "password_reset_tokens"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
+    )
+
+    token = Column(
+        String(255),
+        unique=True,
+        nullable=False,
+        index=True
+    )
+
+    expires_at = Column(
+        DateTime,
+        nullable=False
+    )
+
+    used = Column(
+        String(10),
+        default="false",
+        nullable=False
+    )
+
+    created_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        nullable=False
+    )

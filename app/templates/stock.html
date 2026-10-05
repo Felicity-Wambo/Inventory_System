@@ -1,0 +1,1156 @@
+{% extends "base.html" %}
+
+{% block title %}Stock Management | Inventory Management System{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+
+    <div>
+        <h1>Stock Management</h1>
+        <p>Monitor and manage inventory quantities across your locations.</p>
+    </div>
+
+    <div class="page-header-actions">
+
+        <button class="btn btn-primary" onclick="openAdjustModal()">
+            <i class="fa-solid fa-sliders"></i>
+            Adjust Stock
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- STATISTICS -->
+
+<div class="stats-grid">
+
+    <div class="stat-card">
+
+        <div class="stat-icon blue">
+            <i class="fa-solid fa-boxes-stacked"></i>
+        </div>
+
+        <div class="stat-content">
+
+            <span class="stat-label">Total Units</span>
+
+            <h2 id="totalUnits">0</h2>
+
+            <p class="stat-description">
+                <i class="fa-solid fa-box"></i>
+                Current inventory
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <div class="stat-icon green">
+            <i class="fa-solid fa-circle-check"></i>
+        </div>
+
+        <div class="stat-content">
+
+            <span class="stat-label">In Stock</span>
+
+            <h2 id="inStock">0</h2>
+
+            <p class="stat-description">
+                Products with stock
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <div class="stat-icon orange">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+
+        <div class="stat-content">
+
+            <span class="stat-label">Low Stock</span>
+
+            <h2 id="lowStock">0</h2>
+
+            <p class="stat-description">
+                Need attention
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <div class="stat-icon purple">
+            <i class="fa-solid fa-box-open"></i>
+        </div>
+
+        <div class="stat-content">
+
+            <span class="stat-label">Out of Stock</span>
+
+            <h2 id="outOfStock">0</h2>
+
+            <p class="stat-description">
+                Products at zero
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- STOCK TABLE -->
+
+<div class="dashboard-card">
+
+    <div class="card-header">
+
+        <div>
+
+            <h2>Current Inventory</h2>
+
+            <p>
+                View current quantities and stock levels.
+            </p>
+
+        </div>
+
+
+        <div
+            style="
+                display:flex;
+                gap:10px;
+                align-items:center;
+            "
+        >
+
+            <select
+                id="stockFilter"
+                onchange="filterStock()"
+                style="
+                    height:40px;
+                    padding:0 12px;
+                    border:1px solid #e2e8f0;
+                    border-radius:8px;
+                    background:white;
+                "
+            >
+
+                <option value="all">
+                    All Stock
+                </option>
+
+                <option value="healthy">
+                    Healthy
+                </option>
+
+                <option value="low">
+                    Low Stock
+                </option>
+
+                <option value="out">
+                    Out of Stock
+                </option>
+
+            </select>
+
+
+            <div
+                class="topbar-search"
+                style="width:230px;"
+            >
+
+                <i class="fa-solid fa-magnifying-glass"></i>
+
+                <input
+                    type="text"
+                    id="stockSearch"
+                    placeholder="Search products..."
+                    oninput="filterStock()"
+                >
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div style="overflow-x:auto;">
+
+        <table
+            style="
+                width:100%;
+                border-collapse:collapse;
+            "
+        >
+
+            <thead>
+
+                <tr
+                    style="
+                        border-bottom:1px solid #e2e8f0;
+                        text-align:left;
+                    "
+                >
+
+                    <th style="padding:14px 20px;">
+                        Product
+                    </th>
+
+                    <th style="padding:14px 20px;">
+                        SKU
+                    </th>
+
+                    <th style="padding:14px 20px;">
+                        Category
+                    </th>
+
+                    <th style="padding:14px 20px;">
+                        Quantity
+                    </th>
+
+                    <th style="padding:14px 20px;">
+                        Minimum
+                    </th>
+
+                    <th style="padding:14px 20px;">
+                        Status
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody id="stockTable">
+
+                <tr>
+
+                    <td
+                        colspan="6"
+                        style="
+                            text-align:center;
+                            padding:50px;
+                            color:#64748b;
+                        "
+                    >
+
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+
+                        Loading stock...
+
+                    </td>
+
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+<!-- STOCK ADJUSTMENT MODAL -->
+
+<div
+    id="adjustModal"
+    style="
+        display:none;
+        position:fixed;
+        inset:0;
+        background:rgba(15,23,42,.55);
+        z-index:999;
+        align-items:center;
+        justify-content:center;
+        padding:20px;
+    "
+>
+
+    <div
+        style="
+            width:100%;
+            max-width:500px;
+            background:white;
+            border-radius:16px;
+            overflow:hidden;
+            box-shadow:0 20px 50px rgba(15,23,42,.2);
+        "
+    >
+
+        <div
+            style="
+                padding:20px;
+                border-bottom:1px solid #e2e8f0;
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+            "
+        >
+
+            <div>
+
+                <h2 style="font-size:18px;">
+                    Adjust Stock
+                </h2>
+
+                <p
+                    style="
+                        margin-top:4px;
+                        font-size:12px;
+                        color:#64748b;
+                    "
+                >
+                    Increase or decrease inventory.
+                </p>
+
+            </div>
+
+
+            <button
+                onclick="closeAdjustModal()"
+                style="
+                    width:34px;
+                    height:34px;
+                    border:none;
+                    border-radius:8px;
+                    background:#f1f5f9;
+                    cursor:pointer;
+                "
+            >
+
+                <i class="fa-solid fa-xmark"></i>
+
+            </button>
+
+        </div>
+
+
+        <form
+            id="adjustForm"
+            style="padding:20px;"
+        >
+
+            <div style="margin-bottom:16px;">
+
+                <label
+                    style="
+                        display:block;
+                        font-size:12px;
+                        font-weight:600;
+                    "
+                >
+                    Product ID
+                </label>
+
+                <input
+                    type="number"
+                    id="adjustProduct"
+                    required
+                    placeholder="Enter product ID"
+                    style="
+                        width:100%;
+                        height:42px;
+                        margin-top:6px;
+                        padding:0 12px;
+                        border:1px solid #e2e8f0;
+                        border-radius:8px;
+                    "
+                >
+
+            </div>
+
+
+            <div style="margin-bottom:16px;">
+
+                <label
+                    style="
+                        display:block;
+                        font-size:12px;
+                        font-weight:600;
+                    "
+                >
+                    Adjustment
+                </label>
+
+                <select
+                    id="adjustType"
+                    required
+                    style="
+                        width:100%;
+                        height:42px;
+                        margin-top:6px;
+                        padding:0 12px;
+                        border:1px solid #e2e8f0;
+                        border-radius:8px;
+                        background:white;
+                    "
+                >
+
+                    <option value="">
+                        Select adjustment
+                    </option>
+
+                    <option value="increase">
+                        Increase Stock
+                    </option>
+
+                    <option value="decrease">
+                        Decrease Stock
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div style="margin-bottom:16px;">
+
+                <label
+                    style="
+                        display:block;
+                        font-size:12px;
+                        font-weight:600;
+                    "
+                >
+                    Quantity
+                </label>
+
+                <input
+                    type="number"
+                    id="adjustQuantity"
+                    min="1"
+                    required
+                    placeholder="Enter quantity"
+                    style="
+                        width:100%;
+                        height:42px;
+                        margin-top:6px;
+                        padding:0 12px;
+                        border:1px solid #e2e8f0;
+                        border-radius:8px;
+                    "
+                >
+
+            </div>
+
+
+            <div
+                style="
+                    display:flex;
+                    justify-content:flex-end;
+                    gap:10px;
+                    margin-top:24px;
+                "
+            >
+
+                <button
+                    type="button"
+                    class="btn"
+                    onclick="closeAdjustModal()"
+                    style="
+                        background:#f1f5f9;
+                        color:#475569;
+                    "
+                >
+                    Cancel
+                </button>
+
+
+                <button
+                    type="submit"
+                    class="btn btn-primary"
+                >
+
+                    <i class="fa-solid fa-check"></i>
+
+                    Apply Adjustment
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+<script>
+
+let allStock = [];
+
+
+/* =========================================
+   LOAD PRODUCTS / STOCK
+   ========================================= */
+
+async function loadStock() {
+
+    const token =
+        localStorage.getItem("access_token");
+
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/products",
+                {
+                    headers: token
+                        ? {
+                            "Authorization":
+                                "Bearer " + token
+                        }
+                        : {}
+                }
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Unable to load stock"
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        allStock =
+            Array.isArray(data)
+                ? data
+                : (data.items || []);
+
+
+        updateStockStats();
+
+        renderStock(allStock);
+
+
+    } catch (error) {
+
+        console.error(error);
+
+
+        document.getElementById(
+            "stockTable"
+        ).innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="6"
+                    style="
+                        text-align:center;
+                        padding:50px;
+                        color:#64748b;
+                    "
+                >
+
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+
+                    <br><br>
+
+                    Unable to load stock.
+
+                </td>
+
+            </tr>
+
+        `;
+
+    }
+
+}
+
+
+/* =========================================
+   STATISTICS
+   ========================================= */
+
+function updateStockStats() {
+
+    let total = 0;
+
+    let inStock = 0;
+
+    let low = 0;
+
+    let out = 0;
+
+
+    allStock.forEach(product => {
+
+        const quantity =
+            Number(
+                product.quantity ??
+                product.stock ??
+                product.stock_quantity ??
+                0
+            );
+
+
+        const minimum =
+            Number(
+                product.minimum_stock ??
+                product.min_stock ??
+                product.reorder_level ??
+                0
+            );
+
+
+        total += quantity;
+
+
+        if (quantity <= 0) {
+
+            out++;
+
+        } else if (
+            minimum > 0 &&
+            quantity <= minimum
+        ) {
+
+            low++;
+
+        } else {
+
+            inStock++;
+
+        }
+
+    });
+
+
+    document.getElementById(
+        "totalUnits"
+    ).textContent =
+        total.toLocaleString();
+
+
+    document.getElementById(
+        "inStock"
+    ).textContent =
+        inStock;
+
+
+    document.getElementById(
+        "lowStock"
+    ).textContent =
+        low;
+
+
+    document.getElementById(
+        "outOfStock"
+    ).textContent =
+        out;
+
+}
+
+
+/* =========================================
+   RENDER STOCK
+   ========================================= */
+
+function renderStock(products) {
+
+    const table =
+        document.getElementById(
+            "stockTable"
+        );
+
+
+    if (!products.length) {
+
+        table.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="6"
+                    style="
+                        text-align:center;
+                        padding:50px;
+                        color:#64748b;
+                    "
+                >
+
+                    <i class="fa-solid fa-box-open"></i>
+
+                    <br><br>
+
+                    No stock records found.
+
+                </td>
+
+            </tr>
+
+        `;
+
+        return;
+
+    }
+
+
+    table.innerHTML =
+        products.map(product => {
+
+            const quantity =
+                Number(
+                    product.quantity ??
+                    product.stock ??
+                    product.stock_quantity ??
+                    0
+                );
+
+
+            const minimum =
+                Number(
+                    product.minimum_stock ??
+                    product.min_stock ??
+                    product.reorder_level ??
+                    0
+                );
+
+
+            let status =
+                "Healthy";
+
+            let color =
+                "#059669";
+
+            let background =
+                "#ecfdf5";
+
+
+            if (quantity <= 0) {
+
+                status = "Out of Stock";
+
+                color = "#dc2626";
+
+                background = "#fef2f2";
+
+            } else if (
+                minimum > 0 &&
+                quantity <= minimum
+            ) {
+
+                status = "Low Stock";
+
+                color = "#ea580c";
+
+                background = "#fff7ed";
+
+            }
+
+
+            return `
+
+                <tr
+                    style="
+                        border-bottom:1px solid #f1f5f9;
+                    "
+                >
+
+                    <td style="padding:16px 20px;">
+
+                        <strong>
+                            ${escapeHtml(
+                                product.name ||
+                                product.product_name ||
+                                "Unnamed Product"
+                            )}
+                        </strong>
+
+                    </td>
+
+
+                    <td
+                        style="
+                            padding:16px 20px;
+                            color:#64748b;
+                        "
+                    >
+
+                        ${escapeHtml(
+                            product.sku || "-"
+                        )}
+
+                    </td>
+
+
+                    <td style="padding:16px 20px;">
+
+                        ${escapeHtml(
+                            product.category || "-"
+                        )}
+
+                    </td>
+
+
+                    <td
+                        style="
+                            padding:16px 20px;
+                            font-weight:700;
+                        "
+                    >
+
+                        ${quantity.toLocaleString()}
+
+                    </td>
+
+
+                    <td
+                        style="
+                            padding:16px 20px;
+                            color:#64748b;
+                        "
+                    >
+
+                        ${minimum.toLocaleString()}
+
+                    </td>
+
+
+                    <td style="padding:16px 20px;">
+
+                        <span
+                            style="
+                                display:inline-flex;
+                                align-items:center;
+                                gap:6px;
+                                padding:6px 10px;
+                                border-radius:20px;
+                                font-size:10px;
+                                font-weight:700;
+                                color:${color};
+                                background:${background};
+                            "
+                        >
+
+                            <i
+                                class="fa-solid fa-circle"
+                                style="font-size:6px;"
+                            ></i>
+
+                            ${status}
+
+                        </span>
+
+                    </td>
+
+                </tr>
+
+            `;
+
+        }).join("");
+
+}
+
+
+/* =========================================
+   FILTER
+   ========================================= */
+
+function filterStock() {
+
+    const search =
+        document.getElementById(
+            "stockSearch"
+        )
+        .value
+        .toLowerCase();
+
+
+    const filter =
+        document.getElementById(
+            "stockFilter"
+        ).value;
+
+
+    const filtered =
+        allStock.filter(product => {
+
+            const name =
+                String(
+                    product.name ||
+                    product.product_name ||
+                    ""
+                ).toLowerCase();
+
+
+            const sku =
+                String(
+                    product.sku || ""
+                ).toLowerCase();
+
+
+            const quantity =
+                Number(
+                    product.quantity ??
+                    product.stock ??
+                    product.stock_quantity ??
+                    0
+                );
+
+
+            const minimum =
+                Number(
+                    product.minimum_stock ??
+                    product.min_stock ??
+                    product.reorder_level ??
+                    0
+                );
+
+
+            let status =
+                "healthy";
+
+
+            if (quantity <= 0) {
+
+                status = "out";
+
+            } else if (
+                minimum > 0 &&
+                quantity <= minimum
+            ) {
+
+                status = "low";
+
+            }
+
+
+            const matchesSearch =
+                name.includes(search) ||
+                sku.includes(search);
+
+
+            const matchesFilter =
+                filter === "all" ||
+                filter === status;
+
+
+            return (
+                matchesSearch &&
+                matchesFilter
+            );
+
+        });
+
+
+    renderStock(filtered);
+
+}
+
+
+/* =========================================
+   MODAL
+   ========================================= */
+
+function openAdjustModal() {
+
+    document.getElementById(
+        "adjustModal"
+    ).style.display = "flex";
+
+}
+
+
+function closeAdjustModal() {
+
+    document.getElementById(
+        "adjustModal"
+    ).style.display = "none";
+
+}
+
+
+/* =========================================
+   STOCK ADJUSTMENT
+   ========================================= */
+
+document
+    .getElementById("adjustForm")
+    .addEventListener(
+        "submit",
+        async function(event) {
+
+            event.preventDefault();
+
+
+            const token =
+                localStorage.getItem(
+                    "access_token"
+                );
+
+
+            const productId =
+                Number(
+                    document.getElementById(
+                        "adjustProduct"
+                    ).value
+                );
+
+
+            const type =
+                document.getElementById(
+                    "adjustType"
+                ).value;
+
+
+            const quantity =
+                Number(
+                    document.getElementById(
+                        "adjustQuantity"
+                    ).value
+                );
+
+
+            const adjustment =
+                type === "increase"
+                    ? quantity
+                    : -quantity;
+
+
+            const payload = {
+
+                product_id:
+                    productId,
+
+                quantity:
+                    adjustment
+
+            };
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/api/stock/adjust",
+                        {
+                            method: "POST",
+
+                            headers: {
+
+                                "Content-Type":
+                                    "application/json",
+
+                                ...(token
+                                    ? {
+                                        "Authorization":
+                                            "Bearer " +
+                                            token
+                                    }
+                                    : {})
+
+                            },
+
+                            body:
+                                JSON.stringify(
+                                    payload
+                                )
+
+                        }
+                    );
+
+
+                if (!response.ok) {
+
+                    const error =
+                        await response.json();
+
+
+                    alert(
+                        error.detail ||
+                        "Unable to adjust stock."
+                    );
+
+                    return;
+
+                }
+
+
+                closeAdjustModal();
+
+
+                document
+                    .getElementById(
+                        "adjustForm"
+                    )
+                    .reset();
+
+
+                await loadStock();
+
+
+            } catch (error) {
+
+                console.error(error);
+
+                alert(
+                    "Unable to connect to the server."
+                );
+
+            }
+
+        }
+    );
+
+
+/* =========================================
+   HELPERS
+   ========================================= */
+
+function escapeHtml(value) {
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+
+/* =========================================
+   START
+   ========================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    loadStock
+);
+
+</script>
+
+{% endblock %}

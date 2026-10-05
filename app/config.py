@@ -1,23 +1,34 @@
-# app/config.py
-from pydantic_settings import BaseSettings
-from functools import lru_cache
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
 
 class Settings(BaseSettings):
     APP_NAME: str = "Inventory Management System"
-    SECRET_KEY: str = "change-this-in-production-please"
-    ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
-    
-    # Database - switch to PostgreSQL by changing this URL
-    # DATABASE_URL: str = "sqlite:///./inventory.db"
-    DATABASE_URL: str = "postgresql://postgres:1515@localhost:5000/inventory"
-    
-    UPLOAD_DIR: str = "./uploads"
-    REPORT_DIR: str = "./reports"
-    
-    class Config:
-        env_file = ".env"
+    APP_BASE_URL: str = "http://127.0.0.1:8000"
 
-@lru_cache()
+    # Database
+    DATABASE_URL: str
+
+    # JWT Authentication
+    SECRET_KEY: str
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+
+    # Gmail SMTP
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USERNAME: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM_EMAIL: str = ""
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore"
+    )
+
+
+settings = Settings()
+
+
 def get_settings():
-    return Settings()
+    return settings

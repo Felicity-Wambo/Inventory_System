@@ -1,182 +1,528 @@
-<!-- app/templates/dashboard.html -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Dashboard - Inventory</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: -apple-system, sans-serif; background: #f3f4f6; color: #111827; }
-        header {
-            background: white; padding: 16px 32px;
-            border-bottom: 1px solid #e5e7eb;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        h1 { font-size: 20px; color: #1e40af; }
-        .container { padding: 32px; max-width: 1400px; margin: 0 auto; }
-        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
-        .stat {
-            background: white; padding: 20px; border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .stat-label { color: #6b7280; font-size: 13px; }
-        .stat-value { font-size: 28px; font-weight: 700; color: #1e40af; margin-top: 4px; }
-        .card { background: white; border-radius: 12px; padding: 24px; margin-bottom: 24px;
-                box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #e5e7eb; }
-        th { color: #6b7280; font-weight: 500; font-size: 13px; text-transform: uppercase; }
-        .btn {
-            padding: 8px 16px; border-radius: 8px; border: none;
-            background: #1e40af; color: white; cursor: pointer; font-size: 14px;
-        }
-        .btn-danger { background: #dc2626; }
-        .btn-warn { background: #f59e0b; }
-        .reorder { color: #dc2626; font-weight: 600; }
-        .ok { color: #059669; }
-        input, select {
-            padding: 8px 12px; border: 1px solid #d1d5db;
-            border-radius: 6px; font-size: 14px; margin-right: 8px;
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <h1>📦 Inventory Dashboard</h1>
-        <div>
-            <span id="userInfo" style="margin-right: 16px; color: #6b7280;"></span>
-            <button class="btn" onclick="logout()">Logout</button>
-        </div>
-    </header>
-    <div class="container">
-        <div class="stats">
-            <div class="stat"><div class="stat-label">Total Products</div><div class="stat-value" id="totalProducts">-</div></div>
-            <div class="stat"><div class="stat-label">Total Stock</div><div class="stat-value" id="totalStock">-</div></div>
-            <div class="stat"><div class="stat-label">Low Stock Items</div><div class="stat-value" id="lowStock" style="color:#dc2626">-</div></div>
-            <div class="stat"><div class="stat-label">Inventory Value</div><div class="stat-value" id="totalValue">-</div></div>
+{% extends "base.html" %}
+
+{% block title %}Dashboard | Inventory Management System{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h1>Dashboard</h1>
+        <p>Welcome back! Here's what's happening with your inventory.</p>
+    </div>
+
+    <div class="page-header-actions">
+        <button class="btn btn-primary" onclick="window.location.href='/items'">
+            <i class="fa-solid fa-plus"></i>
+            Add Product
+        </button>
+    </div>
+</div>
+
+
+<!-- STATISTICS -->
+<div class="stats-grid">
+
+    <!-- Total Products -->
+    <div class="stat-card">
+        <div class="stat-icon blue">
+            <i class="fa-solid fa-box"></i>
         </div>
 
-        <div class="card">
-            <h2 style="margin-bottom: 16px;">Products</h2>
-            <input type="text" id="searchBox" placeholder="Search by name/SKU/barcode..." style="width: 300px;">
-            <button class="btn" onclick="loadProducts()">Search</button>
-            <button class="btn" style="background: #059669;" onclick="scanBarcode()">📷 Scan Barcode</button>
-            <table style="margin-top: 16px;">
-                <thead>
-                    <tr>
-                        <th>SKU</th><th>Name</th><th>Barcode</th><th>Stock</th>
-                        <th>Price</th><th>Value</th><th>Status</th>
-                    </tr>
-                </thead>
-                <tbody id="productsTable"></tbody>
-            </table>
-        </div>
-
-        <div class="card">
-            <h2 style="margin-bottom: 16px;">Export Reports</h2>
-            <a class="btn" href="#" onclick="downloadWithAuth('/api/reports/inventory/pdf')">📄 Inventory PDF</a>
-            <a class="btn" href="#" onclick="downloadWithAuth('/api/reports/inventory/csv')">📊 Inventory CSV</a>
-            <a class="btn" href="#" onclick="downloadWithAuth('/api/reports/transactions/csv')">📊 Transactions CSV</a>
-            <a class="btn" href="#" onclick="downloadWithAuth('/api/reports/low-stock/pdf')">⚠️ Low Stock PDF</a>
-        </div>
-
-        <div class="card">
-            <h2 style="margin-bottom: 16px;">Bulk Import</h2>
-            <input type="file" id="csvFile" accept=".csv">
-            <button class="btn" onclick="uploadCSV()">Import Products CSV</button>
-            <div id="importResult" style="margin-top: 12px;"></div>
+        <div class="stat-content">
+            <span class="stat-label">Total Products</span>
+            <h2 id="totalProducts">0</h2>
+            <p class="stat-description">
+                <i class="fa-solid fa-boxes-stacked"></i>
+                Products in system
+            </p>
         </div>
     </div>
 
-    <script>
-        const token = localStorage.getItem('token');
-        if (!token) window.location.href = '/';
 
-        const headers = { 'Authorization': `Bearer ${token}` };
+    <!-- Total Stock -->
+    <div class="stat-card">
+        <div class="stat-icon green">
+            <i class="fa-solid fa-cubes"></i>
+        </div>
 
-        async function loadUser() {
-            const res = await fetch('/api/auth/me', { headers });
-            if (!res.ok) return logout();
-            const u = await res.json();
-            document.getElementById('userInfo').textContent = `${u.full_name} (${u.role})`;
-        }
+        <div class="stat-content">
+            <span class="stat-label">Total Stock</span>
+            <h2 id="totalStock">0</h2>
+            <p class="stat-description">
+                <i class="fa-solid fa-layer-group"></i>
+                Units available
+            </p>
+        </div>
+    </div>
 
-        async function loadProducts() {
-            const q = document.getElementById('searchBox').value;
-            const url = q ? `/api/products?q=${encodeURIComponent(q)}` : '/api/products';
-            const res = await fetch(url, { headers });
-            if (!res.ok) return logout();
-            const products = await res.json();
 
-            const tbody = document.getElementById('productsTable');
-            let totalStock = 0, totalValue = 0, lowStock = 0;
-            tbody.innerHTML = products.map(p => {
-                totalStock += p.total_stock;
-                totalValue += p.total_stock * p.unit_price;
-                if (p.needs_reorder) lowStock++;
-                return `<tr>
-                    <td>${p.sku}</td>
-                    <td>${p.name}</td>
-                    <td>${p.barcode || '-'}</td>
-                    <td>${p.total_stock}</td>
-                    <td>$${p.unit_price.toFixed(2)}</td>
-                    <td>$${(p.total_stock * p.unit_price).toFixed(2)}</td>
-                    <td class="${p.needs_reorder ? 'reorder' : 'ok'}">
-                        ${p.needs_reorder ? '⚠️ REORDER' : '✓ OK'}
-                    </td>
-                </tr>`;
-            }).join('');
+    <!-- Low Stock -->
+    <div class="stat-card">
+        <div class="stat-icon orange">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
 
-            document.getElementById('totalProducts').textContent = products.length;
-            document.getElementById('totalStock').textContent = totalStock;
-            document.getElementById('totalValue').textContent = '$' + totalValue.toFixed(2);
-            document.getElementById('lowStock').textContent = lowStock;
-        }
+        <div class="stat-content">
+            <span class="stat-label">Low Stock Items</span>
+            <h2 id="lowStockCount">0</h2>
+            <p class="stat-description">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                Need attention
+            </p>
+        </div>
+    </div>
 
-        async function scanBarcode() {
-            const code = prompt('Enter barcode (or use scan endpoint):');
-            if (!code) return;
-            const res = await fetch(`/api/products/barcode/${code}`, { headers });
-            if (res.ok) {
-                const p = await res.json();
-                alert(`Found: ${p.name}\nSKU: ${p.sku}\nTotal Stock: ${p.total_stock}`);
-            } else {
-                alert('Product not found');
+
+    <!-- Locations -->
+    <div class="stat-card">
+        <div class="stat-icon purple">
+            <i class="fa-solid fa-location-dot"></i>
+        </div>
+
+        <div class="stat-content">
+            <span class="stat-label">Locations</span>
+            <h2 id="locationCount">0</h2>
+            <p class="stat-description">
+                <i class="fa-solid fa-building"></i>
+                Storage locations
+            </p>
+        </div>
+    </div>
+
+</div>
+
+
+<!-- QUICK ACTIONS -->
+<div class="section-header">
+    <div>
+        <h2>Quick Actions</h2>
+        <p>Common inventory operations</p>
+    </div>
+</div>
+
+<div class="quick-actions-grid">
+
+    <a href="/items" class="quick-action-card">
+        <div class="quick-action-icon blue">
+            <i class="fa-solid fa-plus"></i>
+        </div>
+
+        <div>
+            <h3>Add Product</h3>
+            <p>Add a new product to inventory</p>
+        </div>
+
+        <i class="fa-solid fa-chevron-right action-arrow"></i>
+    </a>
+
+
+    <a href="/transactions" class="quick-action-card">
+        <div class="quick-action-icon green">
+            <i class="fa-solid fa-arrow-right-arrow-left"></i>
+        </div>
+
+        <div>
+            <h3>New Transaction</h3>
+            <p>Record stock movement</p>
+        </div>
+
+        <i class="fa-solid fa-chevron-right action-arrow"></i>
+    </a>
+
+
+    <a href="/locations" class="quick-action-card">
+        <div class="quick-action-icon purple">
+            <i class="fa-solid fa-location-dot"></i>
+        </div>
+
+        <div>
+            <h3>Manage Locations</h3>
+            <p>View and manage storage locations</p>
+        </div>
+
+        <i class="fa-solid fa-chevron-right action-arrow"></i>
+    </a>
+
+
+    <a href="/reports" class="quick-action-card">
+        <div class="quick-action-icon orange">
+            <i class="fa-solid fa-chart-line"></i>
+        </div>
+
+        <div>
+            <h3>View Reports</h3>
+            <p>Analyze inventory performance</p>
+        </div>
+
+        <i class="fa-solid fa-chevron-right action-arrow"></i>
+    </a>
+
+</div>
+
+
+<!-- DASHBOARD CONTENT -->
+<div class="dashboard-grid">
+
+    <!-- LOW STOCK -->
+    <div class="dashboard-card">
+
+        <div class="card-header">
+            <div>
+                <h2>Low Stock Alerts</h2>
+                <p>Products that need restocking</p>
+            </div>
+
+            <a href="/low-stock" class="view-all">
+                View All
+                <i class="fa-solid fa-arrow-right"></i>
+            </a>
+        </div>
+
+        <div id="lowStockList" class="card-body">
+
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                </div>
+
+                <h3>Loading...</h3>
+                <p>Checking your inventory.</p>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- RECENT ACTIVITY -->
+    <div class="dashboard-card">
+
+        <div class="card-header">
+            <div>
+                <h2>Recent Activity</h2>
+                <p>Latest inventory transactions</p>
+            </div>
+
+            <a href="/transactions" class="view-all">
+                View All
+                <i class="fa-solid fa-arrow-right"></i>
+            </a>
+        </div>
+
+        <div id="recentActivity" class="card-body">
+
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="fa-solid fa-clock"></i>
+                </div>
+
+                <h3>No recent activity</h3>
+                <p>Your latest transactions will appear here.</p>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- SYSTEM STATUS -->
+<div class="dashboard-card system-status-card">
+
+    <div class="card-header">
+        <div>
+            <h2>System Status</h2>
+            <p>Current system information</p>
+        </div>
+
+        <span class="status-online">
+            <span class="status-dot"></span>
+            System Online
+        </span>
+    </div>
+
+
+    <div class="system-status-grid">
+
+        <div class="system-status-item">
+            <div class="status-item-icon">
+                <i class="fa-solid fa-database"></i>
+            </div>
+
+            <div>
+                <span>Database</span>
+                <strong>Connected</strong>
+            </div>
+        </div>
+
+
+        <div class="system-status-item">
+            <div class="status-item-icon">
+                <i class="fa-solid fa-server"></i>
+            </div>
+
+            <div>
+                <span>API Server</span>
+                <strong>Running</strong>
+            </div>
+        </div>
+
+
+        <div class="system-status-item">
+            <div class="status-item-icon">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+
+            <div>
+                <span>Security</span>
+                <strong>Protected</strong>
+            </div>
+        </div>
+
+
+        <div class="system-status-item">
+            <div class="status-item-icon">
+                <i class="fa-solid fa-clock"></i>
+            </div>
+
+            <div>
+                <span>Last Updated</span>
+                <strong id="lastUpdated">Just now</strong>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+<script>
+
+async function loadDashboardData() {
+    
+const token = localStorage.getItem("access_token");
+
+if (!token) {
+    console.log("No login token found. Dashboard running in preview mode.");
+    return;
+}
+
+    const headers = {
+        "Authorization": "Bearer " + token
+    };
+
+
+    /*
+     * LOAD PRODUCTS
+     */
+    try {
+
+        const response = await fetch("/api/products", {
+            headers: headers
+        });
+
+        if (response.ok) {
+
+            const products = await response.json();
+
+            document.getElementById("totalProducts").textContent =
+                Array.isArray(products) ? products.length : 0;
+
+            let totalStock = 0;
+
+            if (Array.isArray(products)) {
+
+                products.forEach(product => {
+
+                    totalStock += Number(
+                        product.quantity ??
+                        product.stock_quantity ??
+                        product.stock ??
+                        0
+                    );
+
+                });
+
             }
+
+            document.getElementById("totalStock").textContent =
+                totalStock.toLocaleString();
+
         }
 
-        async function downloadWithAuth(url) {
-            const res = await fetch(url, { headers });
-            const blob = await res.blob();
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = url.split('/').pop();
-            a.click();
+    } catch (error) {
+
+        console.error("Error loading products:", error);
+
+    }
+
+
+    /*
+     * LOAD LOW STOCK
+     */
+    try {
+
+        const response = await fetch("/api/stock/low", {
+            headers: headers
+        });
+
+        if (response.ok) {
+
+            const lowStock = await response.json();
+
+            const items = Array.isArray(lowStock)
+                ? lowStock
+                : (lowStock.items || []);
+
+            document.getElementById("lowStockCount").textContent =
+                items.length;
+
+            const container =
+                document.getElementById("lowStockList");
+
+            if (items.length === 0) {
+
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon success">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+
+                        <h3>All stock levels are healthy</h3>
+
+                        <p>
+                            There are currently no low-stock products.
+                        </p>
+                    </div>
+                `;
+
+            } else {
+
+                container.innerHTML = items
+                    .slice(0, 5)
+                    .map(item => {
+
+                        const name =
+                            item.name ||
+                            item.product_name ||
+                            "Unknown Product";
+
+                        const quantity =
+                            item.quantity ??
+                            item.stock_quantity ??
+                            item.stock ??
+                            0;
+
+                        const minimum =
+                            item.minimum_stock ??
+                            item.min_stock ??
+                            item.reorder_level ??
+                            0;
+
+                        return `
+                            <div class="stock-alert-row">
+
+                                <div class="stock-product-icon">
+                                    <i class="fa-solid fa-box"></i>
+                                </div>
+
+                                <div class="stock-product-info">
+                                    <strong>${escapeHtml(name)}</strong>
+
+                                    <span>
+                                        Minimum level:
+                                        ${minimum}
+                                    </span>
+                                </div>
+
+                                <div class="stock-quantity">
+                                    <strong>${quantity}</strong>
+                                    <span>remaining</span>
+                                </div>
+
+                            </div>
+                        `;
+
+                    })
+                    .join("");
+
+            }
+
         }
 
-        async function uploadCSV() {
-            const file = document.getElementById('csvFile').files[0];
-            if (!file) return alert('Select a file');
-            const fd = new FormData();
-            fd.append('file', file);
-            const res = await fetch('/api/bulk/import/products', {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` },
-                body: fd
-            });
-            const data = await res.json();
-            document.getElementById('importResult').innerHTML =
-                `<pre>${JSON.stringify(data, null, 2)}</pre>`;
-            loadProducts();
+    } catch (error) {
+
+        console.error("Error loading low stock:", error);
+
+    }
+
+
+    /*
+     * LOAD LOCATIONS
+     */
+    try {
+
+        const response = await fetch("/api/locations", {
+            headers: headers
+        });
+
+        if (response.ok) {
+
+            const locations = await response.json();
+
+            const items = Array.isArray(locations)
+                ? locations
+                : (locations.items || []);
+
+            document.getElementById("locationCount").textContent =
+                items.length;
+
         }
 
-        function logout() {
-            localStorage.removeItem('token');
-            window.location.href = '/';
-        }
+    } catch (error) {
 
-        loadUser();
-        loadProducts();
-    </script>
-</body>
-</html>
+        console.error("Error loading locations:", error);
+
+    }
+
+
+    /*
+     * UPDATE TIME
+     */
+    document.getElementById("lastUpdated").textContent =
+        new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit"
+        });
+}
+
+
+/*
+ * ESCAPE HTML
+ * Prevents product names from injecting HTML.
+ */
+function escapeHtml(value) {
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+
+document.addEventListener(
+    "DOMContentLoaded",
+    loadDashboardData
+);
+
+</script>
+
+{% endblock %}
