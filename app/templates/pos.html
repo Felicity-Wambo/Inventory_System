@@ -1,0 +1,1564 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Point of Sale | Inventory System</title>
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --background: #f5f7fb;
+            --surface: #ffffff;
+            --text: #172033;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --success: #15803d;
+            --danger: #dc2626;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--background);
+            color: var(--text);
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        button, input, select {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .pos-container {
+            width: min(1500px, 100%);
+            margin: 0 auto;
+            padding: 28px;
+        }
+
+        .pos-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .pos-header h1 {
+            margin: 0 0 8px;
+            font-size: 30px;
+            letter-spacing: -0.7px;
+        }
+
+        .pos-header p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .cashier-card {
+            padding: 12px 18px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--surface);
+            color: var(--muted);
+        }
+
+        .cashier-card strong {
+            color: var(--text);
+        }
+
+        .location-card,
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: 0 4px 18px rgba(15, 23, 42, 0.04);
+        }
+
+        .location-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            padding: 18px 20px;
+            margin-bottom: 22px;
+        }
+
+        .location-card label {
+            font-weight: 700;
+        }
+
+        .location-card select {
+            flex: 1;
+            min-width: 220px;
+            max-width: 420px;
+        }
+
+        .pos-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.7fr) minmax(310px, 0.9fr);
+            gap: 22px;
+            align-items: start;
+        }
+
+        .panel {
+            padding: 24px;
+            min-width: 0;
+        }
+
+        .panel h2 {
+            margin: 0 0 8px;
+            font-size: 20px;
+        }
+
+        .panel-description {
+            margin: 0 0 22px;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        input,
+        select {
+            width: 100%;
+            min-height: 44px;
+            padding: 11px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 9px;
+            outline: none;
+            background: #fff;
+            color: var(--text);
+        }
+
+        input:focus,
+        select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+
+        .barcode-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .barcode-row input {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .primary-button,
+        .secondary-button,
+        .payment-method,
+        .remove-button {
+            border: 0;
+            border-radius: 9px;
+            font-weight: 700;
+            transition: background 0.15s ease;
+        }
+
+        .primary-button {
+            padding: 12px 18px;
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .primary-button:hover {
+            background: var(--primary-dark);
+        }
+
+        .secondary-button {
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            background: #fff;
+            color: var(--text);
+        }
+
+        .secondary-button:hover {
+            background: #f1f5f9;
+        }
+
+        .message {
+            min-height: 20px;
+            margin: 12px 0;
+            font-size: 13px;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        .message:empty {
+            display: none;
+        }
+
+        .message.success {
+            color: var(--success);
+        }
+
+        .message.error {
+            color: var(--danger);
+        }
+
+        .message.info {
+            color: var(--muted);
+        }
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 18px;
+        }
+
+        .pos-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            text-align: left;
+        }
+
+        .pos-table th {
+            padding: 14px 10px;
+            background: #f8fafc;
+            color: var(--muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            white-space: nowrap;
+        }
+
+        .pos-table td {
+            padding: 15px 10px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        .pos-table th:first-child,
+        .pos-table td:first-child {
+            padding-left: 14px;
+        }
+
+        .product-name {
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .product-code {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .quantity-control button {
+            width: 28px;
+            height: 28px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: #fff;
+        }
+
+        .quantity-control span {
+            min-width: 18px;
+            text-align: center;
+        }
+
+        .remove-button {
+            padding: 6px 9px;
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .empty-row {
+            padding: 36px 12px !important;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin: 17px 0;
+            font-size: 14px;
+        }
+
+        .summary-row span {
+            color: var(--muted);
+        }
+
+        .summary-row strong {
+            text-align: right;
+        }
+
+        .total-row {
+            margin: 22px 0;
+            padding: 20px 0;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .total-row span {
+            color: var(--text);
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .total-row strong {
+            color: var(--primary);
+            font-size: 27px;
+        }
+
+        .payment-options {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+            margin: 12px 0 22px;
+        }
+
+        .payment-method {
+            padding: 11px 6px;
+            border: 1px solid var(--border);
+            background: #fff;
+            color: var(--muted);
+        }
+
+        .payment-method.active {
+            border-color: var(--primary);
+            background: #eff6ff;
+            color: var(--primary-dark);
+        }
+
+        .change-box {
+            margin: 18px 0;
+            padding: 16px;
+            border-radius: 10px;
+            background: #f8fafc;
+        }
+
+        .change-box .summary-row {
+            margin: 0;
+        }
+
+        .change-value {
+            font-size: 20px;
+        }
+
+        .complete-button {
+            width: 100%;
+            min-height: 50px;
+            margin-top: 8px;
+            font-size: 15px;
+        }
+
+        .small-note {
+            margin: 14px 0 0;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .loading-indicator {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        @media (max-width: 900px) {
+            .pos-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .pos-container {
+                padding: 18px;
+            }
+        }
+
+        @media (max-width: 540px) {
+            .pos-container {
+                padding: 12px;
+            }
+
+            .panel {
+                padding: 16px;
+            }
+
+            .pos-header h1 {
+                font-size: 25px;
+            }
+
+            .barcode-row {
+                flex-direction: column;
+            }
+
+            .barcode-row button {
+                min-height: 44px;
+            }
+
+            .location-card {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .location-card select {
+                max-width: none;
+            }
+        }
+
+        @media print {
+            body {
+                background: #fff;
+            }
+
+            .pos-container {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="pos-container">
+        <header class="pos-header">
+            <div>
+                <h1>Point of Sale</h1>
+                <p>Scan products, receive payment and complete your sale.</p>
+            </div>
+
+            <div class="cashier-card">
+                Cashier: <strong id="cashierName">Cashier</strong>
+            </div>
+        </header>
+
+        <section class="location-card">
+            <label for="posLocation">Stock location</label>
+            <select id="posLocation">
+                <option value="">Loading locations...</option>
+            </select>
+            <span id="locationStatus" class="loading-indicator"></span>
+        </section>
+
+        <div id="locationMessage" class="message" role="status" aria-live="polite"></div>
+
+        <div class="pos-layout">
+            <section class="panel">
+                <h2>Add products</h2>
+                <p class="panel-description">
+                    Scan a product barcode using your USB scanner, or type its
+                    barcode or SKU and press Enter.
+                </p>
+
+                <form id="barcodeForm">
+                    <label for="barcodeInput">Barcode or SKU</label>
+                    <div class="barcode-row">
+                        <input
+                            id="barcodeInput"
+                            name="barcode"
+                            type="text"
+                            placeholder="Scan or type product code..."
+                            autocomplete="off"
+                            required
+                        >
+                        <button class="primary-button" id="addItemButton" type="submit">
+                            Add item
+                        </button>
+                    </div>
+                </form>
+
+                <div id="message" class="message" role="status" aria-live="polite"></div>
+
+                <div class="table-wrapper">
+                    <table class="pos-table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                                <th>Subtotal</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="saleItems">
+                            <tr>
+                                <td colspan="5" class="empty-row">
+                                    No products added yet.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p class="small-note">
+                    Product prices and availability are retrieved from your inventory API.
+                    A successful sale must be accepted by the backend before a receipt is issued.
+                </p>
+            </section>
+
+            <aside class="panel">
+                <h2>Payment summary</h2>
+                <p class="panel-description">Review the total before completing the sale.</p>
+
+                <div class="summary-row">
+                    <span>Product types</span>
+                    <strong id="itemCount">0 items</strong>
+                </div>
+
+                <div class="summary-row">
+                    <span>Total quantity</span>
+                    <strong id="totalItems">0</strong>
+                </div>
+
+                <div class="summary-row total-row">
+                    <span>Total</span>
+                    <strong id="totalAmount">KSh 0.00</strong>
+                </div>
+
+                <h3>Payment method</h3>
+
+                <div class="payment-options">
+                    <button
+                        class="payment-method active"
+                        type="button"
+                        data-method="cash"
+                        aria-pressed="true"
+                    >Cash</button>
+
+                    <button
+                        class="payment-method"
+                        type="button"
+                        data-method="mpesa"
+                        aria-pressed="false"
+                    >M-Pesa</button>
+
+                    <button
+                        class="payment-method"
+                        type="button"
+                        data-method="card"
+                        aria-pressed="false"
+                    >Card</button>
+                </div>
+
+                <label for="amountReceived">Amount received (KSh)</label>
+                <input
+                    id="amountReceived"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="Enter amount received"
+                    inputmode="decimal"
+                >
+
+                <div class="change-box">
+                    <div class="summary-row">
+                        <span id="changeLabel">Change</span>
+                        <strong id="changeAmount" class="change-value">KSh 0.00</strong>
+                    </div>
+                </div>
+
+                <button
+                    id="completeSale"
+                    class="primary-button complete-button"
+                    type="button"
+                >
+                    Complete Sale &amp; Print Receipt
+                </button>
+
+                <div id="paymentMessage" class="message" role="status" aria-live="polite"></div>
+
+                <p class="small-note">
+                    Select the correct stock location before completing a sale.
+                    M-Pesa and card payments must be verified using your backend's
+                    payment workflow where applicable.
+                </p>
+            </aside>
+        </div>
+    </main>
+
+    <script>
+    "use strict";
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const API_BASE = "";
+
+        const elements = {
+            barcodeInput: document.getElementById("barcodeInput"),
+            barcodeForm: document.getElementById("barcodeForm"),
+            addItemButton: document.getElementById("addItemButton"),
+            amountReceived: document.getElementById("amountReceived"),
+            message: document.getElementById("message"),
+            paymentMessage: document.getElementById("paymentMessage"),
+            locationMessage: document.getElementById("locationMessage"),
+            locationStatus: document.getElementById("locationStatus"),
+            posLocation: document.getElementById("posLocation"),
+            saleItems: document.getElementById("saleItems"),
+            totalAmount: document.getElementById("totalAmount"),
+            totalItems: document.getElementById("totalItems"),
+            itemCount: document.getElementById("itemCount"),
+            changeAmount: document.getElementById("changeAmount"),
+            changeLabel: document.getElementById("changeLabel"),
+            completeSale: document.getElementById("completeSale"),
+            cashierName: document.getElementById("cashierName")
+        };
+
+        const missingElements = Object.entries(elements)
+            .filter(([, element]) => !element)
+            .map(([name]) => name);
+
+        if (missingElements.length > 0) {
+            console.error(
+                "POS initialization stopped. Missing HTML elements:",
+                missingElements
+            );
+            return;
+        }
+
+        let cart = [];
+        let productsCache = [];
+        let activeLocationId = "";
+        let paymentMethod = "cash";
+        let isLoadingProducts = false;
+        let isCompletingSale = false;
+
+        function money(value) {
+            const number = Number(value) || 0;
+
+            return new Intl.NumberFormat("en-KE", {
+                style: "currency",
+                currency: "KES",
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(number);
+        }
+
+        function escapeHTML(value) {
+            return String(value ?? "").replace(/[&<>"']/g, function (char) {
+                const entities = {
+                    "&": "&amp;",
+                    "<": "&lt;",
+                    ">": "&gt;",
+                    '"': "&quot;",
+                    "'": "&#039;"
+                };
+
+                return entities[char];
+            });
+        }
+
+        function showMessage(target, message, type = "info") {
+            if (!target) return;
+
+            target.textContent = message || "";
+            target.className = message
+                ? "message " + type
+                : "message";
+        }
+
+        function getToken() {
+            const tokenKeys = [
+                "access_token",
+                "token",
+                "accessToken"
+            ];
+
+            for (const key of tokenKeys) {
+                const value = localStorage.getItem(key);
+
+                if (value) {
+                    try {
+                        const parsed = JSON.parse(value);
+
+                        if (typeof parsed === "string") {
+                            return parsed;
+                        }
+
+                        if (parsed && typeof parsed.access_token === "string") {
+                            return parsed.access_token;
+                        }
+                    } catch (_) {
+                        return value;
+                    }
+                }
+            }
+
+            return "";
+        }
+
+        async function apiRequest(path, options = {}) {
+            const headers = new Headers(options.headers || {});
+            const token = getToken();
+
+            headers.set("Accept", "application/json");
+
+            if (token) {
+                headers.set("Authorization", "Bearer " + token);
+            }
+
+            if (
+                options.body &&
+                typeof options.body === "string" &&
+                !headers.has("Content-Type")
+            ) {
+                headers.set("Content-Type", "application/json");
+            }
+
+            let response;
+
+            try {
+                response = await fetch(API_BASE + path, {
+                    ...options,
+                    headers
+                });
+            } catch (error) {
+                throw new Error(
+                    "Cannot connect to the server. Check that FastAPI is running and try again."
+                );
+            }
+
+            const rawText = await response.text();
+            let data = null;
+
+            if (rawText) {
+                try {
+                    data = JSON.parse(rawText);
+                } catch (_) {
+                    data = rawText;
+                }
+            }
+
+            if (response.status === 401) {
+                throw new Error(
+                    "Your login session has expired or is missing. Log in again, then reopen the POS."
+                );
+            }
+
+            if (response.status === 403) {
+                throw new Error(
+                    "Your account does not have permission to perform this action."
+                );
+            }
+
+            if (!response.ok) {
+                let detail = "";
+
+                if (data && typeof data === "object") {
+                    detail = data.detail || data.message || data.error || "";
+                } else if (typeof data === "string") {
+                    detail = data;
+                }
+
+                throw new Error(
+                    detail || ("Request failed with HTTP " + response.status + ".")
+                );
+            }
+
+            return data;
+        }
+
+        function extractList(response, possibleKeys = []) {
+            if (Array.isArray(response)) {
+                return response;
+            }
+
+            if (!response || typeof response !== "object") {
+                return [];
+            }
+
+            for (const key of possibleKeys) {
+                if (Array.isArray(response[key])) {
+                    return response[key];
+                }
+            }
+
+            if (response.data !== undefined) {
+                if (Array.isArray(response.data)) {
+                    return response.data;
+                }
+
+                if (response.data && typeof response.data === "object") {
+                    return extractList(response.data, possibleKeys);
+                }
+            }
+
+            return [];
+        }
+
+        function productId(product) {
+            return product?.id ?? product?.product_id ?? null;
+        }
+
+        function productName(product) {
+            return product?.name ?? product?.product_name ?? "Unnamed product";
+        }
+
+        function productPrice(product) {
+            return Number(
+                product?.unit_price ??
+                product?.selling_price ??
+                product?.price ??
+                0
+            );
+        }
+
+        function productBarcode(product) {
+            return String(product?.barcode ?? "").trim();
+        }
+
+        function productSKU(product) {
+            return String(product?.sku ?? "").trim();
+        }
+
+        function productIsActive(product) {
+            return product?.is_active !== false && product?.is_active !== 0;
+        }
+
+        function findExactProduct(list, code) {
+            const normalizedCode = String(code).trim().toLowerCase();
+
+            return list.find(function (product) {
+                return (
+                    productBarcode(product).toLowerCase() === normalizedCode ||
+                    productSKU(product).toLowerCase() === normalizedCode
+                );
+            });
+        }
+
+        async function loadProducts() {
+            if (isLoadingProducts) {
+                return productsCache;
+            }
+
+            isLoadingProducts = true;
+
+            try {
+                const response = await apiRequest("/api/products");
+
+                productsCache = extractList(response, [
+                    "products",
+                    "items",
+                    "results"
+                ]).filter(productIsActive);
+
+                return productsCache;
+            } finally {
+                isLoadingProducts = false;
+            }
+        }
+
+        async function findProduct(code) {
+            const normalizedCode = String(code || "").trim();
+
+            if (!normalizedCode) {
+                throw new Error("Scan a barcode or enter a product SKU.");
+            }
+
+            let product = findExactProduct(productsCache, normalizedCode);
+
+            if (product) {
+                return product;
+            }
+
+            try {
+                const query = "/api/products?search=" +
+                    encodeURIComponent(normalizedCode);
+
+                const response = await apiRequest(query);
+
+                const matches = extractList(response, [
+                    "products",
+                    "items",
+                    "results"
+                ]);
+
+                product = findExactProduct(matches, normalizedCode);
+
+                if (product && productIsActive(product)) {
+                    return product;
+                }
+            } catch (error) {
+                console.warn(
+                    "Product search endpoint was unavailable; checking the product list.",
+                    error.message
+                );
+            }
+
+            const products = await loadProducts();
+            product = findExactProduct(products, normalizedCode);
+
+            if (product) {
+                return product;
+            }
+
+            throw new Error(
+                "No active product matches barcode/SKU: " + normalizedCode
+            );
+        }
+
+        function renderItems() {
+            if (cart.length === 0) {
+                elements.saleItems.innerHTML =
+                    '<tr><td colspan="5" class="empty-row">' +
+                    "No products added yet." +
+                    "</td></tr>";
+
+                updatePaymentSummary();
+                return;
+            }
+
+            elements.saleItems.innerHTML = cart.map(function (item, index) {
+                const subtotal = item.price * item.quantity;
+
+                return `
+                    <tr>
+                        <td>
+                            <div class="product-name">
+                                ${escapeHTML(item.name)}
+                            </div>
+                            <div class="product-code">
+                                SKU: ${escapeHTML(item.sku || "N/A")}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="quantity-control">
+                                <button
+                                    type="button"
+                                    data-action="decrease"
+                                    data-index="${index}"
+                                    aria-label="Decrease quantity"
+                                >−</button>
+                                <span>${item.quantity}</span>
+                                <button
+                                    type="button"
+                                    data-action="increase"
+                                    data-index="${index}"
+                                    aria-label="Increase quantity"
+                                >+</button>
+                            </div>
+                        </td>
+                        <td>${money(item.price)}</td>
+                        <td><strong>${money(subtotal)}</strong></td>
+                        <td>
+                            <button
+                                type="button"
+                                class="remove-button"
+                                data-action="remove"
+                                data-index="${index}"
+                            >Remove</button>
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+
+            updatePaymentSummary();
+        }
+
+        function cartTotal() {
+            return cart.reduce(function (sum, item) {
+                return sum + item.price * item.quantity;
+            }, 0);
+        }
+
+        function totalQuantity() {
+            return cart.reduce(function (sum, item) {
+                return sum + item.quantity;
+            }, 0);
+        }
+
+        function updatePaymentSummary() {
+            const total = cartTotal();
+            const received = Number(elements.amountReceived.value) || 0;
+            const difference = received - total;
+
+            elements.itemCount.textContent =
+                cart.length + (cart.length === 1 ? " item" : " items");
+
+            elements.totalItems.textContent = String(totalQuantity());
+            elements.totalAmount.textContent = money(total);
+
+            if (difference >= 0) {
+                elements.changeLabel.textContent = "Change";
+                elements.changeAmount.textContent = money(difference);
+            } else {
+                elements.changeLabel.textContent = "Amount due";
+                elements.changeAmount.textContent = money(Math.abs(difference));
+            }
+        }
+
+        async function addScannedProduct(code) {
+            showMessage(elements.message, "Looking up product...", "info");
+            elements.addItemButton.disabled = true;
+
+            try {
+                const product = await findProduct(code);
+                const id = productId(product);
+                const price = productPrice(product);
+
+                if (id === null || id === undefined) {
+                    throw new Error(
+                        "The product returned by the API has no product ID."
+                    );
+                }
+
+                if (!Number.isFinite(price) || price < 0) {
+                    throw new Error(
+                        "This product has an invalid selling price in the database."
+                    );
+                }
+
+                const existing = cart.find(function (item) {
+                    return String(item.id) === String(id);
+                });
+
+                if (existing) {
+                    existing.quantity += 1;
+                } else {
+                    cart.push({
+                        id: id,
+                        name: productName(product),
+                        sku: productSKU(product),
+                        barcode: productBarcode(product),
+                        price: price,
+                        quantity: 1
+                    });
+                }
+
+                renderItems();
+                showMessage(
+                    elements.message,
+                    productName(product) + " added to the sale.",
+                    "success"
+                );
+
+                elements.amountReceived.focus();
+            } catch (error) {
+                showMessage(elements.message, error.message, "error");
+            } finally {
+                elements.addItemButton.disabled = false;
+                elements.barcodeInput.value = "";
+                elements.barcodeInput.focus();
+            }
+        }
+
+        elements.saleItems.addEventListener("click", function (event) {
+            const button = event.target.closest("button[data-action]");
+
+            if (!button) return;
+
+            const index = Number(button.dataset.index);
+            const action = button.dataset.action;
+            const item = cart[index];
+
+            if (!item) return;
+
+            if (action === "increase") {
+                item.quantity += 1;
+            } else if (action === "decrease") {
+                item.quantity -= 1;
+
+                if (item.quantity <= 0) {
+                    cart.splice(index, 1);
+                }
+            } else if (action === "remove") {
+                cart.splice(index, 1);
+            }
+
+            renderItems();
+        });
+
+        elements.barcodeForm.addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const code = elements.barcodeInput.value.trim();
+
+            if (!code) {
+                showMessage(
+                    elements.message,
+                    "Scan a barcode or enter a SKU first.",
+                    "error"
+                );
+                return;
+            }
+
+            await addScannedProduct(code);
+        });
+
+        elements.amountReceived.addEventListener(
+            "input",
+            updatePaymentSummary
+        );
+
+        document.querySelectorAll(".payment-method").forEach(function (button) {
+            button.addEventListener("click", function () {
+                paymentMethod = button.dataset.method || "cash";
+
+                document.querySelectorAll(".payment-method").forEach(
+                    function (otherButton) {
+                        const isSelected = otherButton === button;
+
+                        otherButton.classList.toggle("active", isSelected);
+                        otherButton.setAttribute(
+                            "aria-pressed",
+                            String(isSelected)
+                        );
+                    });
+
+                showMessage(
+                    elements.paymentMessage,
+                    "Payment method selected: " + paymentMethod.toUpperCase() +
+                    ". Ensure this method is supported by the backend.",
+                    "info"
+                );
+            });
+        });
+
+        async function loadLocations() {
+            elements.posLocation.innerHTML =
+                '<option value="">Loading locations...</option>';
+
+            elements.locationStatus.textContent = "Loading...";
+
+            try {
+                const response = await apiRequest("/api/locations");
+
+                const locations = extractList(response, [
+                    "locations",
+                    "items",
+                    "results"
+                ]).filter(function (location) {
+                    return (
+                        location?.is_active !== false &&
+                        location?.is_active !== 0 &&
+                        location?.active !== false
+                    );
+                });
+
+                elements.posLocation.innerHTML =
+                    '<option value="">Select a stock location</option>';
+
+                locations.forEach(function (location) {
+                    const id = location.id ?? location.location_id;
+
+                    if (id === undefined || id === null) return;
+
+                    const option = document.createElement("option");
+                    option.value = String(id);
+                    option.textContent =
+                        location.name ??
+                        location.location_name ??
+                        ("Location " + id);
+
+                    elements.posLocation.appendChild(option);
+                });
+
+                if (locations.length === 0) {
+                    showMessage(
+                        elements.locationMessage,
+                        "No active stock locations were returned by /api/locations. Create or activate a location before selling.",
+                        "error"
+                    );
+
+                    elements.locationStatus.textContent = "No active locations";
+                    return;
+                }
+
+                const savedLocationId = localStorage.getItem("pos_location_id");
+                const savedOption = Array.from(
+                    elements.posLocation.options
+                ).find(function (option) {
+                    return option.value === savedLocationId;
+                });
+
+                if (savedOption) {
+                    elements.posLocation.value = savedOption.value;
+                } else if (locations.length === 1) {
+                    const onlyId = locations[0].id ?? locations[0].location_id;
+                    elements.posLocation.value = String(onlyId);
+                }
+
+                activeLocationId = elements.posLocation.value || "";
+
+                if (activeLocationId) {
+                    localStorage.setItem("pos_location_id", activeLocationId);
+                    showMessage(
+                        elements.locationMessage,
+                        "Stock location ready.",
+                        "success"
+                    );
+                } else {
+                    showMessage(
+                        elements.locationMessage,
+                        "Select the stock location from which this sale will deduct inventory.",
+                        "info"
+                    );
+                }
+
+                elements.locationStatus.textContent =
+                    locations.length + (locations.length === 1
+                        ? " active location"
+                        : " active locations");
+            } catch (error) {
+                elements.posLocation.innerHTML =
+                    '<option value="">Unable to load locations</option>';
+
+                elements.locationStatus.textContent = "Load failed";
+
+                showMessage(
+                    elements.locationMessage,
+                    "Could not load stock locations: " + error.message,
+                    "error"
+                );
+            }
+        }
+
+        elements.posLocation.addEventListener("change", function () {
+            activeLocationId = elements.posLocation.value || "";
+
+            if (activeLocationId) {
+                localStorage.setItem("pos_location_id", activeLocationId);
+
+                showMessage(
+                    elements.locationMessage,
+                    "Stock location selected.",
+                    "success"
+                );
+            } else {
+                localStorage.removeItem("pos_location_id");
+
+                showMessage(
+                    elements.locationMessage,
+                    "Please select a stock location.",
+                    "error"
+                );
+            }
+        });
+
+        function getCashierName() {
+            const keys = ["user", "currentUser", "user_data"];
+
+            for (const key of keys) {
+                const value = localStorage.getItem(key);
+
+                if (!value) continue;
+
+                try {
+                    const user = JSON.parse(value);
+
+                    if (typeof user === "string") {
+                        return user;
+                    }
+
+                    if (user && typeof user === "object") {
+                        return (
+                            user.full_name ||
+                            user.username ||
+                            user.name ||
+                            user.email ||
+                            "Cashier"
+                        );
+                    }
+                } catch (_) {
+                    continue;
+                }
+            }
+
+            return "Cashier";
+        }
+
+        function openReceiptWindow() {
+            return window.open("", "_blank", "width=420,height=700");
+        }
+
+        function printReceipt(receiptWindow, sale, saleItems, total, received) {
+            if (!receiptWindow) {
+                showMessage(
+                    elements.paymentMessage,
+                    "The sale was completed, but the browser blocked the receipt window. Allow pop-ups and print the receipt again from your sales history.",
+                    "error"
+                );
+                return;
+            }
+
+            const saleNumber =
+                sale?.sale_number ??
+                sale?.invoice_number ??
+                sale?.reference ??
+                sale?.id ??
+                "Recorded";
+
+            const rows = saleItems.map(function (item) {
+                return `
+                    <tr>
+                        <td>${escapeHTML(item.name)} × ${item.quantity}</td>
+                        <td style="text-align:right">${money(item.price * item.quantity)}</td>
+                    </tr>
+                `;
+            }).join("");
+
+            const safeCashier = escapeHTML(getCashierName());
+            const safeSaleNumber = escapeHTML(saleNumber);
+            const receiptTotal = Number(sale?.total ?? sale?.total_amount ?? total);
+            const amountPaid = Number(
+                sale?.amount_paid ?? sale?.amount_received ?? received
+            );
+
+            receiptWindow.document.open();
+            receiptWindow.document.write(`
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1">
+                    <title>Sales Receipt</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            padding: 18px;
+                            color: #111827;
+                            font-size: 13px;
+                        }
+                        h2, p { text-align: center; }
+                        h2 { margin-bottom: 4px; }
+                        .muted { color: #64748b; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 18px; }
+                        th, td { padding: 9px 3px; border-bottom: 1px dashed #ccc; }
+                        th { text-align: left; }
+                        .right { text-align: right; }
+                        .totals { margin-top: 16px; }
+                        .totals p { display: flex; justify-content: space-between; }
+                        @media print { button { display: none; } }
+                    </style>
+                </head>
+                <body>
+                    <h2>Inventory System</h2>
+                    <p class="muted">Sales Receipt</p>
+                    <p><strong>Sale:</strong> ${safeSaleNumber}</p>
+                    <p><strong>Date:</strong> ${escapeHTML(new Date().toLocaleString())}</p>
+                    <p><strong>Cashier:</strong> ${safeCashier}</p>
+                    <p><strong>Payment:</strong> ${escapeHTML(paymentMethod.toUpperCase())}</p>
+                    <table>
+                        <thead>
+                            <tr><th>Item</th><th class="right">Amount</th></tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                    <div class="totals">
+                        <p><span>Total</span><strong>${money(receiptTotal)}</strong></p>
+                        <p><span>Amount received</span><strong>${money(amountPaid)}</strong></p>
+                        <p><span>Change</span><strong>${money(Math.max(0, amountPaid - receiptTotal))}</strong></p>
+                    </div>
+                    <p>Thank you for shopping with us!</p>
+                    <button onclick="window.print()">Print receipt</button>
+                    <script>
+                        window.onload = function () {
+                            window.focus();
+                            window.print();
+                        };
+                    <\/script>
+                </body>
+                </html>
+            `);
+            receiptWindow.document.close();
+        }
+
+        async function completeSale() {
+            if (isCompletingSale) return;
+
+            if (cart.length === 0) {
+                showMessage(
+                    elements.paymentMessage,
+                    "Add at least one product before completing the sale.",
+                    "error"
+                );
+                return;
+            }
+
+            if (!activeLocationId) {
+                showMessage(
+                    elements.locationMessage,
+                    "Select a stock location before completing the sale.",
+                    "error"
+                );
+                elements.posLocation.focus();
+                return;
+            }
+
+            const total = cartTotal();
+            const receivedText = elements.amountReceived.value.trim();
+            const received = Number(receivedText);
+
+            if (
+                receivedText === "" ||
+                !Number.isFinite(received) ||
+                received < 0
+            ) {
+                showMessage(
+                    elements.paymentMessage,
+                    "Enter a valid amount received.",
+                    "error"
+                );
+                elements.amountReceived.focus();
+                return;
+            }
+
+            if (received < total) {
+                showMessage(
+                    elements.paymentMessage,
+                    "The amount received is less than the total. Collect the balance before completing the sale.",
+                    "error"
+                );
+                elements.amountReceived.focus();
+                return;
+            }
+
+            if (!getToken()) {
+                showMessage(
+                    elements.paymentMessage,
+                    "No authentication token was found. Log in again before making a sale.",
+                    "error"
+                );
+                return;
+            }
+
+            // Open synchronously from the button click to reduce popup-blocking.
+            const receiptWindow = openReceiptWindow();
+
+            if (receiptWindow) {
+                receiptWindow.document.write(
+                    "<p style='font-family:Arial;padding:20px'>Processing sale...</p>"
+                );
+            }
+
+            isCompletingSale = true;
+            elements.completeSale.disabled = true;
+            elements.completeSale.textContent = "Processing sale...";
+
+            const soldItems = cart.map(function (item) {
+                return { ...item };
+            });
+
+            try {
+                const payload = {
+                    location_id: Number(activeLocationId),
+                    items: soldItems.map(function (item) {
+                        return {
+                            product_id: Number(item.id),
+                            quantity: Number(item.quantity)
+                        };
+                    }),
+                    discount: 0,
+                    tax: 0,
+                    payment_method: paymentMethod,
+                    amount_paid: received,
+                    notes: "POS sale"
+                };
+
+                const response = await apiRequest("/api/pos/checkout", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const sale = response?.sale ?? response?.data?.sale ?? response;
+
+                printReceipt(
+                    receiptWindow,
+                    sale,
+                    soldItems,
+                    total,
+                    received
+                );
+
+                cart = [];
+                elements.amountReceived.value = "";
+
+                renderItems();
+
+                showMessage(
+                    elements.paymentMessage,
+                    "Sale completed successfully. Change: " +
+                    money(received - total) + ".",
+                    "success"
+                );
+
+                showMessage(
+                    elements.message,
+                    "Sale recorded successfully.",
+                    "success"
+                );
+
+                try {
+                    productsCache = [];
+                    await loadProducts();
+                } catch (refreshError) {
+                    console.warn(
+                        "Sale succeeded, but products could not be refreshed.",
+                        refreshError
+                    );
+                }
+            } catch (error) {
+                if (receiptWindow && !receiptWindow.closed) {
+                    receiptWindow.close();
+                }
+
+                showMessage(
+                    elements.paymentMessage,
+                    "Sale failed: " + error.message,
+                    "error"
+                );
+            } finally {
+                isCompletingSale = false;
+                elements.completeSale.disabled = false;
+                elements.completeSale.textContent =
+                    "Complete Sale & Print Receipt";
+                elements.barcodeInput.focus();
+            }
+        }
+
+        elements.completeSale.addEventListener("click", completeSale);
+
+        async function initializePOS() {
+            elements.cashierName.textContent = getCashierName();
+
+            renderItems();
+            updatePaymentSummary();
+
+            // Load locations independently so a location error does not
+            // prevent the rest of the POS page from initializing.
+            await Promise.allSettled([
+                loadLocations(),
+                loadProducts()
+            ]);
+
+            elements.barcodeInput.focus();
+        }
+
+        initializePOS();
+    });
+    </script>
+</body>
+</html>

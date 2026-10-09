@@ -31,6 +31,7 @@
         <div class="stat-content">
             <span class="stat-label">Total Products</span>
             <h2 id="productCount">0</h2>
+
             <p class="stat-description">
                 <i class="fa-solid fa-boxes-stacked"></i>
                 Products registered
@@ -47,6 +48,7 @@
         <div class="stat-content">
             <span class="stat-label">Total Units</span>
             <h2 id="unitCount">0</h2>
+
             <p class="stat-description">
                 <i class="fa-solid fa-layer-group"></i>
                 Units in stock
@@ -63,6 +65,7 @@
         <div class="stat-content">
             <span class="stat-label">Low Stock</span>
             <h2 id="lowStockProducts">0</h2>
+
             <p class="stat-description">
                 <i class="fa-solid fa-circle-exclamation"></i>
                 Need attention
@@ -79,6 +82,7 @@
         <div class="stat-content">
             <span class="stat-label">Categories</span>
             <h2 id="categoryCount">0</h2>
+
             <p class="stat-description">
                 <i class="fa-solid fa-layer-group"></i>
                 Product categories
@@ -91,7 +95,7 @@
 
 <!-- SEARCH AND FILTERS -->
 
-<div class="dashboard-card" style="margin-bottom: 20px;">
+<div class="dashboard-card" style="margin-bottom:20px;">
 
     <div class="card-header">
 
@@ -102,7 +106,7 @@
 
     </div>
 
-    <div style="padding: 20px;">
+    <div style="padding:20px;">
 
         <div style="
             display:flex;
@@ -111,6 +115,7 @@
         ">
 
             <div class="topbar-search" style="width:300px;">
+
                 <i class="fa-solid fa-magnifying-glass"></i>
 
                 <input
@@ -119,7 +124,9 @@
                     placeholder="Search products..."
                     oninput="filterProducts()"
                 >
+
             </div>
+
 
             <select
                 id="categoryFilter"
@@ -134,7 +141,9 @@
                     outline:none;
                 "
             >
+
                 <option value="">All Categories</option>
+
             </select>
 
         </div>
@@ -155,10 +164,13 @@
             <p>Products currently registered in the system</p>
         </div>
 
-        <span id="tableCount" style="
-            font-size:12px;
-            color:#64748b;
-        ">
+        <span
+            id="tableCount"
+            style="
+                font-size:12px;
+                color:#64748b;
+            "
+        >
             0 products
         </span>
 
@@ -207,6 +219,7 @@
 
             </thead>
 
+
             <tbody id="productsTable">
 
                 <tr>
@@ -238,7 +251,9 @@
 </div>
 
 
-<!-- ADD PRODUCT MODAL -->
+<!-- =========================================
+     ADD PRODUCT MODAL
+========================================= -->
 
 <div
     id="productModal"
@@ -256,12 +271,16 @@
 
     <div style="
         width:100%;
-        max-width:520px;
+        max-width:600px;
+        max-height:90vh;
+        overflow-y:auto;
         background:white;
         border-radius:16px;
         box-shadow:0 20px 50px rgba(15,23,42,.2);
-        overflow:hidden;
     ">
+
+
+        <!-- MODAL HEADER -->
 
         <div style="
             padding:20px;
@@ -272,7 +291,11 @@
         ">
 
             <div>
-                <h2 style="font-size:18px;color:#0f172a;">
+
+                <h2 style="
+                    font-size:18px;
+                    color:#0f172a;
+                ">
                     Add Product
                 </h2>
 
@@ -281,11 +304,14 @@
                     font-size:12px;
                     color:#64748b;
                 ">
-                    Add a new product to your inventory.
+                    Add a new product and its opening stock.
                 </p>
+
             </div>
 
+
             <button
+                type="button"
                 onclick="closeProductModal()"
                 style="
                     border:none;
@@ -302,17 +328,34 @@
         </div>
 
 
-        <form id="productForm" style="padding:20px;">
+        <!-- PRODUCT FORM -->
+
+        <form
+            id="productForm"
+            style="padding:20px;"
+        >
+
+
+            <!-- PRODUCT NAME -->
 
             <div style="margin-bottom:15px;">
 
-                <label>Product Name</label>
+                <label
+                    for="productName"
+                    style="
+                        font-size:12px;
+                        font-weight:600;
+                        color:#334155;
+                    "
+                >
+                    Product Name
+                </label>
 
                 <input
                     type="text"
                     id="productName"
                     required
-                    placeholder="e.g. Laptop"
+                    placeholder="e.g. HP Laptop"
                     style="
                         width:100%;
                         height:42px;
@@ -327,19 +370,32 @@
             </div>
 
 
+            <!-- SKU + BARCODE -->
+
             <div style="
                 display:grid;
                 grid-template-columns:1fr 1fr;
                 gap:15px;
             ">
 
+
                 <div>
 
-                    <label>SKU</label>
+                    <label
+                        for="productSku"
+                        style="
+                            font-size:12px;
+                            font-weight:600;
+                            color:#334155;
+                        "
+                    >
+                        SKU
+                    </label>
 
                     <input
                         type="text"
                         id="productSku"
+                        required
                         placeholder="SKU-001"
                         style="
                             width:100%;
@@ -356,12 +412,21 @@
 
                 <div>
 
-                    <label>Category</label>
+                    <label
+                        for="productBarcode"
+                        style="
+                            font-size:12px;
+                            font-weight:600;
+                            color:#334155;
+                        "
+                    >
+                        Barcode
+                    </label>
 
                     <input
                         type="text"
-                        id="productCategory"
-                        placeholder="Electronics"
+                        id="productBarcode"
+                        placeholder="Optional"
                         style="
                             width:100%;
                             height:42px;
@@ -377,6 +442,8 @@
             </div>
 
 
+            <!-- CATEGORY + UNIT -->
+
             <div style="
                 display:grid;
                 grid-template-columns:1fr 1fr;
@@ -384,14 +451,254 @@
                 margin-top:15px;
             ">
 
+
                 <div>
 
-                    <label>Quantity</label>
+                    <label
+                        for="productCategory"
+                        style="
+                            font-size:12px;
+                            font-weight:600;
+                            color:#334155;
+                        "
+                    >
+                        Category
+                    </label>
+
+                    <select
+                        id="productCategory"
+                        style="
+                            width:100%;
+                            height:42px;
+                            margin-top:6px;
+                            padding:0 12px;
+                            border:1px solid #e2e8f0;
+                            border-radius:8px;
+                            background:white;
+                            color:#334155;
+                        "
+                    >
+
+                        <option value="">
+                            Select category
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div>
+
+                    <label
+                        for="productUnit"
+                        style="
+                            font-size:12px;
+                            font-weight:600;
+                            color:#334155;
+                        "
+                    >
+                        Unit
+                    </label>
+
+                    <select
+                        id="productUnit"
+                        style="
+                            width:100%;
+                            height:42px;
+                            margin-top:6px;
+                            padding:0 12px;
+                            border:1px solid #e2e8f0;
+                            border-radius:8px;
+                            background:white;
+                            color:#334155;
+                        "
+                    >
+
+                        <option value="pcs">Pieces (pcs)</option>
+                        <option value="box">Box</option>
+                        <option value="kg">Kilogram (kg)</option>
+                        <option value="litre">Litre</option>
+                        <option value="pack">Pack</option>
+                        <option value="set">Set</option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+
+            <!-- LOCATION -->
+
+            <div style="
+                margin-top:15px;
+            ">
+
+                <label
+                    for="productLocation"
+                    style="
+                        font-size:12px;
+                        font-weight:600;
+                        color:#334155;
+                    "
+                >
+                    Stock Location
+                </label>
+
+                <select
+                    id="productLocation"
+                    required
+                    style="
+                        width:100%;
+                        height:42px;
+                        margin-top:6px;
+                        padding:0 12px;
+                        border:1px solid #e2e8f0;
+                        border-radius:8px;
+                        background:white;
+                        color:#334155;
+                    "
+                >
+
+                    <option value="">
+                        Select location
+                    </option>
+
+                </select>
+
+
+                <p style="
+                    margin-top:5px;
+                    font-size:11px;
+                    color:#64748b;
+                ">
+                    Choose where the opening stock will be stored.
+                </p>
+
+            </div>
+
+
+            <!-- QUANTITY + REORDER LEVEL -->
+
+            <div style="
+                display:grid;
+                grid-template-columns:1fr 1fr;
+                gap:15px;
+                margin-top:15px;
+            ">
+
+
+                <div>
+
+                    <label
+                        for="productQuantity"
+                        style="
+                            font-size:12px;
+                            font-weight:600;
+                            color:#334155;
+                        "
+                    >
+                        Opening Quantity
+                    </label>
 
                     <input
                         type="number"
                         id="productQuantity"
                         min="0"
+                        value="0"
+                        required
+                        style="
+                            width:100%;
+                            height:42px;
+                            margin-top:6px;
+                            padding:0 12px;
+                            border:1px solid #e2e8f0;
+                            border-radius:8px;
+                        "
+                    >
+
+                    <p style="
+                        margin-top:5px;
+                        font-size:11px;
+                        color:#64748b;
+                    ">
+                        Initial stock at this location.
+                    </p>
+
+                </div>
+
+
+                <div>
+
+                    <label
+                        for="productMinimum"
+                        style="
+                            font-size:12px;
+                            font-weight:600;
+                            color:#334155;
+                        "
+                    >
+                        Reorder Level
+                    </label>
+
+                    <input
+                        type="number"
+                        id="productMinimum"
+                        min="0"
+                        value="10"
+                        required
+                        style="
+                            width:100%;
+                            height:42px;
+                            margin-top:6px;
+                            padding:0 12px;
+                            border:1px solid #e2e8f0;
+                            border-radius:8px;
+                        "
+                    >
+
+                    <p style="
+                        margin-top:5px;
+                        font-size:11px;
+                        color:#64748b;
+                    ">
+                        Alert when stock reaches this level.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- SELLING + COST PRICE -->
+
+            <div style="
+                display:grid;
+                grid-template-columns:1fr 1fr;
+                gap:15px;
+                margin-top:15px;
+            ">
+
+
+                <div>
+
+                    <label
+                        for="productPrice"
+                        style="
+                            font-size:12px;
+                            font-weight:600;
+                            color:#334155;
+                        "
+                    >
+                        Selling Price
+                    </label>
+
+                    <input
+                        type="number"
+                        id="productPrice"
+                        min="0"
+                        step="0.01"
                         value="0"
                         style="
                             width:100%;
@@ -408,13 +715,23 @@
 
                 <div>
 
-                    <label>Minimum Stock</label>
+                    <label
+                        for="productCost"
+                        style="
+                            font-size:12px;
+                            font-weight:600;
+                            color:#334155;
+                        "
+                    >
+                        Cost Price
+                    </label>
 
                     <input
                         type="number"
-                        id="productMinimum"
+                        id="productCost"
                         min="0"
-                        value="5"
+                        step="0.01"
+                        value="0"
                         style="
                             width:100%;
                             height:42px;
@@ -429,6 +746,40 @@
 
             </div>
 
+
+            <!-- DESCRIPTION -->
+
+            <div style="margin-top:15px;">
+
+                <label
+                    for="productDescription"
+                    style="
+                        font-size:12px;
+                        font-weight:600;
+                        color:#334155;
+                    "
+                >
+                    Description
+                </label>
+
+                <textarea
+                    id="productDescription"
+                    rows="3"
+                    placeholder="Optional product description"
+                    style="
+                        width:100%;
+                        margin-top:6px;
+                        padding:10px 12px;
+                        border:1px solid #e2e8f0;
+                        border-radius:8px;
+                        resize:vertical;
+                    "
+                ></textarea>
+
+            </div>
+
+
+            <!-- BUTTONS -->
 
             <div style="
                 display:flex;
@@ -449,12 +800,16 @@
                     Cancel
                 </button>
 
+
                 <button
                     type="submit"
+                    id="saveProductButton"
                     class="btn btn-primary"
                 >
+
                     <i class="fa-solid fa-check"></i>
                     Save Product
+
                 </button>
 
             </div>
@@ -465,7 +820,6 @@
 
 </div>
 
-
 {% endblock %}
 
 
@@ -474,11 +828,13 @@
 <script>
 
 let allProducts = [];
+let allLocations = [];
+let allCategories = [];
 
 
 /* =========================================
    LOAD PRODUCTS
-   ========================================= */
+========================================= */
 
 async function loadProducts() {
 
@@ -487,47 +843,78 @@ async function loadProducts() {
     try {
 
         const response = await fetch("/api/products", {
+
             headers: token
-                ? {"Authorization": "Bearer " + token}
+                ? {
+                    "Authorization": "Bearer " + token
+                }
                 : {}
+
         });
 
+
         if (!response.ok) {
+
+            if (response.status === 401) {
+
+                throw new Error(
+                    "Your login session has expired. Please login again."
+                );
+
+            }
+
             throw new Error("Unable to load products");
+
         }
 
+
         const data = await response.json();
+
 
         allProducts = Array.isArray(data)
             ? data
             : (data.items || []);
 
+
         renderProducts(allProducts);
 
         updateProductSummary(allProducts);
+
+        populateCategoryFilter(allProducts);
 
     } catch (error) {
 
         console.error(error);
 
+
         document.getElementById("productsTable").innerHTML = `
+
             <tr>
+
                 <td colspan="6">
+
                     <div class="empty-state">
 
                         <div class="empty-icon">
+
                             <i class="fa-solid fa-triangle-exclamation"></i>
+
                         </div>
+
 
                         <h3>Unable to load products</h3>
 
+
                         <p>
-                            Please check your connection and try again.
+                            ${escapeHtml(error.message)}
                         </p>
 
                     </div>
+
                 </td>
+
             </tr>
+
         `;
 
     }
@@ -536,8 +923,291 @@ async function loadProducts() {
 
 
 /* =========================================
+   LOAD LOCATIONS
+========================================= */
+
+async function loadLocations() {
+
+    const token = localStorage.getItem("access_token");
+
+
+    try {
+
+        /*
+         * This assumes your location endpoint is:
+         * GET /api/locations
+         */
+
+        const response = await fetch("/api/locations", {
+
+            headers: token
+                ? {
+                    "Authorization": "Bearer " + token
+                }
+                : {}
+
+        });
+
+
+        if (!response.ok) {
+
+            throw new Error("Unable to load locations");
+
+        }
+
+
+        const data = await response.json();
+
+
+        allLocations = Array.isArray(data)
+            ? data
+            : (data.items || []);
+
+
+        populateLocationDropdown();
+
+
+    } catch (error) {
+
+        console.error("Location loading error:", error);
+
+
+        /*
+         * If the location endpoint is not available,
+         * show the locations that already exist in your DB.
+         */
+
+        allLocations = [
+
+            {
+                id: 1,
+                code: "MAIN",
+                name: "Main Warehouse"
+            },
+
+            {
+                id: 2,
+                code: "STORE1",
+                name: "Downtown Store"
+            },
+
+            {
+                id: 3,
+                code: "STORE2",
+                name: "Uptown Store"
+            }
+
+        ];
+
+
+        populateLocationDropdown();
+
+    }
+
+}
+
+
+/* =========================================
+   POPULATE LOCATION DROPDOWN
+========================================= */
+
+function populateLocationDropdown() {
+
+    const select =
+        document.getElementById("productLocation");
+
+
+    select.innerHTML = `
+
+        <option value="">
+            Select location
+        </option>
+
+    `;
+
+
+    allLocations.forEach(location => {
+
+        const option =
+            document.createElement("option");
+
+
+        option.value = location.id;
+
+
+        option.textContent =
+            `${location.code || ""} - ${location.name}`;
+
+
+        select.appendChild(option);
+
+    });
+
+}
+
+
+/* =========================================
+   POPULATE CATEGORY FILTER
+========================================= */
+
+function populateCategoryFilter(products) {
+
+    const filter =
+        document.getElementById("categoryFilter");
+
+
+    const categories = new Set();
+
+
+    products.forEach(product => {
+
+        const category =
+            product.category ||
+            product.category_name;
+
+
+        if (category) {
+
+            categories.add(category);
+
+        }
+
+    });
+
+
+    filter.innerHTML = `
+        <option value="">All Categories</option>
+    `;
+
+
+    [...categories]
+        .sort()
+        .forEach(category => {
+
+            const option =
+                document.createElement("option");
+
+            option.value = category;
+
+            option.textContent = category;
+
+            filter.appendChild(option);
+
+        });
+
+}
+
+
+/* =========================================
+   LOAD CATEGORIES
+========================================= */
+
+async function loadCategories() {
+
+    const token = localStorage.getItem("access_token");
+
+
+    try {
+
+        /*
+         * This assumes:
+         * GET /api/categories
+         */
+
+        const response = await fetch("/api/categories", {
+
+            headers: token
+                ? {
+                    "Authorization": "Bearer " + token
+                }
+                : {}
+
+        });
+
+
+        if (!response.ok) {
+
+            throw new Error("Unable to load categories");
+
+        }
+
+
+        const data = await response.json();
+
+
+        allCategories = Array.isArray(data)
+            ? data
+            : (data.items || []);
+
+
+        populateCategoryDropdown();
+
+
+    } catch (error) {
+
+        console.error("Category loading error:", error);
+
+
+        /*
+         * Keep the dropdown usable even if
+         * category endpoint is unavailable.
+         */
+
+        document.getElementById("productCategory").innerHTML = `
+
+            <option value="">
+                No categories available
+            </option>
+
+        `;
+
+    }
+
+}
+
+
+/* =========================================
+   POPULATE CATEGORY DROPDOWN
+========================================= */
+
+function populateCategoryDropdown() {
+
+    const select =
+        document.getElementById("productCategory");
+
+
+    select.innerHTML = `
+
+        <option value="">
+            Select category
+        </option>
+
+    `;
+
+
+    allCategories.forEach(category => {
+
+        const option =
+            document.createElement("option");
+
+
+        option.value = category.id;
+
+
+        option.textContent =
+            category.name;
+
+
+        select.appendChild(option);
+
+    });
+
+}
+
+
+/* =========================================
    UPDATE SUMMARY
-   ========================================= */
+========================================= */
 
 function updateProductSummary(products) {
 
@@ -549,37 +1219,52 @@ function updateProductSummary(products) {
 
     let lowStock = 0;
 
+
     const categories = new Set();
 
 
     products.forEach(product => {
 
-        totalUnits += Number(
+
+        /*
+         * New backend uses total_stock.
+         */
+
+        const quantity = Number(
+
+            product.total_stock ??
+
             product.quantity ??
+
             product.stock_quantity ??
+
             product.stock ??
+
             0
+
         );
+
+
+        totalUnits += quantity;
 
 
         const minimum = Number(
-            product.minimum_stock ??
-            product.min_stock ??
+
             product.reorder_level ??
-            0
-        );
 
+            product.minimum_stock ??
 
-        const quantity = Number(
-            product.quantity ??
-            product.stock_quantity ??
-            product.stock ??
+            product.min_stock ??
+
             0
+
         );
 
 
         if (quantity <= minimum) {
+
             lowStock++;
+
         }
 
 
@@ -587,8 +1272,11 @@ function updateProductSummary(products) {
             product.category ||
             product.category_name;
 
+
         if (category) {
+
             categories.add(category);
+
         }
 
     });
@@ -597,8 +1285,10 @@ function updateProductSummary(products) {
     document.getElementById("unitCount").textContent =
         totalUnits.toLocaleString();
 
+
     document.getElementById("lowStockProducts").textContent =
         lowStock;
+
 
     document.getElementById("categoryCount").textContent =
         categories.size;
@@ -608,29 +1298,44 @@ function updateProductSummary(products) {
 
 /* =========================================
    RENDER PRODUCTS
-   ========================================= */
+========================================= */
 
 function renderProducts(products) {
 
-    const table = document.getElementById("productsTable");
+    const table =
+        document.getElementById("productsTable");
+
 
     document.getElementById("tableCount").textContent =
-        `${products.length} product${products.length === 1 ? "" : "s"}`;
+
+        `${products.length} product${
+
+            products.length === 1
+                ? ""
+                : "s"
+
+        }`;
 
 
     if (!products.length) {
 
         table.innerHTML = `
+
             <tr>
+
                 <td colspan="6">
 
                     <div class="empty-state">
 
                         <div class="empty-icon">
+
                             <i class="fa-solid fa-box-open"></i>
+
                         </div>
 
+
                         <h3>No products found</h3>
+
 
                         <p>
                             Add your first product to get started.
@@ -639,19 +1344,24 @@ function renderProducts(products) {
                     </div>
 
                 </td>
+
             </tr>
+
         `;
 
         return;
+
     }
 
 
     table.innerHTML = products.map(product => {
 
+
         const name =
             product.name ||
             product.product_name ||
             "Unnamed Product";
+
 
         const sku =
             product.sku ||
@@ -659,31 +1369,54 @@ function renderProducts(products) {
             product.barcode ||
             "-";
 
+
         const category =
             product.category ||
             product.category_name ||
             "Uncategorized";
 
+
+        /*
+         * IMPORTANT:
+         * Your updated backend returns total_stock.
+         */
+
         const quantity = Number(
+
+            product.total_stock ??
+
             product.quantity ??
+
             product.stock_quantity ??
+
             product.stock ??
+
             0
+
         );
 
+
         const minimum = Number(
-            product.minimum_stock ??
-            product.min_stock ??
+
             product.reorder_level ??
+
+            product.minimum_stock ??
+
+            product.min_stock ??
+
             0
+
         );
 
 
         let status = "In Stock";
 
+
         let statusStyle = `
+
             background:#ecfdf5;
             color:#059669;
+
         `;
 
 
@@ -691,9 +1424,12 @@ function renderProducts(products) {
 
             status = "Low Stock";
 
+
             statusStyle = `
+
                 background:#fff7ed;
                 color:#ea580c;
+
             `;
 
         }
@@ -703,10 +1439,35 @@ function renderProducts(products) {
 
             status = "Out of Stock";
 
+
             statusStyle = `
+
                 background:#fef2f2;
                 color:#dc2626;
+
             `;
+
+        }
+
+
+        /*
+         * Build location summary.
+         */
+
+        let locationText = "";
+
+
+        if (
+            Array.isArray(product.locations) &&
+            product.locations.length
+        ) {
+
+            locationText =
+                product.locations
+                    .map(location =>
+                        `${location.location_name}: ${location.quantity}`
+                    )
+                    .join(" | ");
 
         }
 
@@ -716,6 +1477,9 @@ function renderProducts(products) {
             <tr style="
                 border-bottom:1px solid #f1f5f9;
             ">
+
+
+                <!-- PRODUCT -->
 
                 <td style="padding:15px 20px;">
 
@@ -741,35 +1505,64 @@ function renderProducts(products) {
                         </div>
 
 
-                        <strong style="
-                            color:#0f172a;
-                            font-size:12px;
-                        ">
-                            ${escapeHtml(name)}
-                        </strong>
+                        <div>
+
+                            <strong style="
+                                color:#0f172a;
+                                font-size:12px;
+                            ">
+                                ${escapeHtml(name)}
+                            </strong>
+
+
+                            ${
+                                locationText
+                                ? `
+                                    <div style="
+                                        margin-top:3px;
+                                        font-size:10px;
+                                        color:#94a3b8;
+                                    ">
+                                        ${escapeHtml(locationText)}
+                                    </div>
+                                `
+                                : ""
+                            }
+
+                        </div>
 
                     </div>
 
                 </td>
 
 
+                <!-- SKU -->
+
                 <td style="
                     padding:15px 20px;
                     font-size:11px;
                     color:#64748b;
                 ">
+
                     ${escapeHtml(sku)}
+
                 </td>
 
+
+                <!-- CATEGORY -->
 
                 <td style="
                     padding:15px 20px;
                     font-size:11px;
                     color:#64748b;
                 ">
+
                     ${escapeHtml(category)}
+
                 </td>
 
+
+                <!-- STOCK -->
 
                 <td style="
                     padding:15px 20px;
@@ -778,9 +1571,13 @@ function renderProducts(products) {
                     font-weight:700;
                     color:#0f172a;
                 ">
+
                     ${quantity.toLocaleString()}
+
                 </td>
 
+
+                <!-- STATUS -->
 
                 <td style="
                     padding:15px 20px;
@@ -795,11 +1592,15 @@ function renderProducts(products) {
                         font-weight:700;
                         ${statusStyle}
                     ">
+
                         ${status}
+
                     </span>
 
                 </td>
 
+
+                <!-- ACTIONS -->
 
                 <td style="
                     padding:15px 20px;
@@ -819,7 +1620,9 @@ function renderProducts(products) {
                         "
                         title="View product"
                     >
+
                         <i class="fa-solid fa-eye"></i>
+
                     </button>
 
                 </td>
@@ -835,49 +1638,72 @@ function renderProducts(products) {
 
 /* =========================================
    SEARCH
-   ========================================= */
+========================================= */
 
 function filterProducts() {
 
     const search =
-        document.getElementById("productSearch")
+        document
+            .getElementById("productSearch")
             .value
             .toLowerCase();
+
 
     const category =
         document.getElementById("categoryFilter")
             .value;
 
 
-    const filtered = allProducts.filter(product => {
+    const filtered =
+        allProducts.filter(product => {
 
-        const name =
-            String(product.name || product.product_name || "")
+
+            const name =
+                String(
+                    product.name ||
+                    product.product_name ||
+                    ""
+                )
                 .toLowerCase();
 
-        const sku =
-            String(product.sku || product.code || "")
+
+            const sku =
+                String(
+                    product.sku ||
+                    product.code ||
+                    ""
+                )
                 .toLowerCase();
 
-        const productCategory =
-            product.category ||
-            product.category_name ||
-            "";
+
+            const productCategory =
+                product.category ||
+                product.category_name ||
+                "";
 
 
-        const matchesSearch =
-            name.includes(search) ||
-            sku.includes(search);
+            const matchesSearch =
+
+                name.includes(search) ||
+
+                sku.includes(search);
 
 
-        const matchesCategory =
-            !category ||
-            productCategory === category;
+            const matchesCategory =
+
+                !category ||
+
+                productCategory === category;
 
 
-        return matchesSearch && matchesCategory;
+            return (
 
-    });
+                matchesSearch &&
+                matchesCategory
+
+            );
+
+        });
 
 
     renderProducts(filtered);
@@ -887,93 +1713,147 @@ function filterProducts() {
 
 /* =========================================
    MODAL
-   ========================================= */
+========================================= */
 
 function openProductModal() {
 
-    document.getElementById("productModal").style.display =
-        "flex";
+    document.getElementById("productModal")
+        .style.display = "flex";
+
+
+    /*
+     * Reload locations every time modal opens.
+     * This ensures newly-created locations appear.
+     */
+
+    loadLocations();
 
 }
 
 
 function closeProductModal() {
 
-    document.getElementById("productModal").style.display =
-        "none";
+    document.getElementById("productModal")
+        .style.display = "none";
 
 }
 
 
 /* =========================================
    SAVE PRODUCT
-   ========================================= */
+========================================= */
 
-document.getElementById("productForm")
-    .addEventListener("submit", async function(event) {
+document
+    .getElementById("productForm")
+    .addEventListener(
+        "submit",
+        async function(event) {
 
-        event.preventDefault();
+            event.preventDefault();
 
 
-        const token =
-            localStorage.getItem("access_token");
+            const token =
+                localStorage.getItem(
+                    "access_token"
+                );
 
 
-        const payload = {
+            const saveButton =
+                document.getElementById(
+                    "saveProductButton"
+                );
 
-            name:
-                document.getElementById("productName").value,
 
-            sku:
-                document.getElementById("productSku").value,
+            /*
+             * Read form values.
+             */
 
-            category:
-                document.getElementById("productCategory").value,
+            const name =
+                document
+                    .getElementById("productName")
+                    .value
+                    .trim();
 
-            quantity:
+
+            const sku =
+                document
+                    .getElementById("productSku")
+                    .value
+                    .trim();
+
+
+            const barcode =
+                document
+                    .getElementById("productBarcode")
+                    .value
+                    .trim();
+
+
+            const categoryValue =
+                document
+                    .getElementById("productCategory")
+                    .value;
+
+
+            const locationValue =
+                document
+                    .getElementById("productLocation")
+                    .value;
+
+
+            const quantity =
                 Number(
-                    document.getElementById("productQuantity").value
-                ),
+                    document
+                        .getElementById("productQuantity")
+                        .value
+                );
 
-            minimum_stock:
+
+            const reorderLevel =
                 Number(
-                    document.getElementById("productMinimum").value
-                )
-
-        };
-
-
-        try {
-
-            const response = await fetch(
-                "/api/products",
-                {
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type": "application/json",
-
-                        ...(token
-                            ? {
-                                "Authorization":
-                                    "Bearer " + token
-                            }
-                            : {})
-                    },
-
-                    body: JSON.stringify(payload)
-                }
-            );
+                    document
+                        .getElementById("productMinimum")
+                        .value
+                );
 
 
-            if (!response.ok) {
+            const unit =
+                document
+                    .getElementById("productUnit")
+                    .value;
 
-                const error =
-                    await response.json();
+
+            const unitPrice =
+                Number(
+                    document
+                        .getElementById("productPrice")
+                        .value
+                );
+
+
+            const costPrice =
+                Number(
+                    document
+                        .getElementById("productCost")
+                        .value
+                );
+
+
+            const description =
+                document
+                    .getElementById("productDescription")
+                    .value
+                    .trim();
+
+
+            /*
+             * Validate location.
+             */
+
+            if (!locationValue) {
 
                 alert(
-                    error.detail ||
-                    "Unable to create product."
+                    "Please select a stock location."
                 );
 
                 return;
@@ -981,36 +1861,279 @@ document.getElementById("productForm")
             }
 
 
-            closeProductModal();
+            if (quantity < 0) {
 
-            document.getElementById("productForm")
-                .reset();
+                alert(
+                    "Opening quantity cannot be negative."
+                );
 
-            await loadProducts();
+                return;
+
+            }
 
 
-        } catch (error) {
+            if (reorderLevel < 0) {
 
-            console.error(error);
+                alert(
+                    "Reorder level cannot be negative."
+                );
 
-            alert(
-                "Unable to connect to the server."
+                return;
+
+            }
+
+
+            /*
+             * Disable button while saving.
+             */
+
+            saveButton.disabled = true;
+
+
+            saveButton.innerHTML = `
+
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                Saving...
+
+            `;
+
+
+            /*
+             * IMPORTANT:
+             *
+             * These field names now match
+             * ProductCreate in FastAPI.
+             */
+
+            const payload = {
+
+                sku: sku,
+
+                name: name,
+
+                barcode: barcode || null,
+
+                description: description,
+
+                category_id:
+                    categoryValue
+                        ? Number(categoryValue)
+                        : null,
+
+                supplier_id: null,
+
+                unit_price: unitPrice,
+
+                cost_price: costPrice,
+
+                reorder_level: reorderLevel,
+
+                unit: unit,
+
+                location_id:
+                    Number(locationValue),
+
+                quantity: quantity
+
+            };
+
+
+            console.log(
+                "Creating product:",
+                payload
             );
 
-        }
 
-    });
+            try {
+
+                const response =
+                    await fetch(
+                        "/api/products",
+                        {
+
+                            method: "POST",
+
+                            headers: {
+
+                                "Content-Type":
+                                    "application/json",
+
+                                ...(token
+                                    ? {
+                                        "Authorization":
+                                            "Bearer " +
+                                            token
+                                    }
+                                    : {})
+
+                            },
+
+                            body:
+                                JSON.stringify(
+                                    payload
+                                )
+
+                        }
+                    );
+
+
+                const result =
+                    await response.json();
+
+
+                if (!response.ok) {
+
+                    console.error(
+                        "Create product error:",
+                        result
+                    );
+
+
+                    alert(
+
+                        result.detail ||
+
+                        "Unable to create product."
+
+                    );
+
+
+                    return;
+
+                }
+
+
+                /*
+                 * Success.
+                 */
+
+                alert(
+                    "Product added successfully!"
+                );
+
+
+                closeProductModal();
+
+
+                document
+                    .getElementById("productForm")
+                    .reset();
+
+
+                /*
+                 * Restore defaults.
+                 */
+
+                document
+                    .getElementById("productQuantity")
+                    .value = 0;
+
+
+                document
+                    .getElementById("productMinimum")
+                    .value = 10;
+
+
+                document
+                    .getElementById("productPrice")
+                    .value = 0;
+
+
+                document
+                    .getElementById("productCost")
+                    .value = 0;
+
+
+                await loadProducts();
+
+
+            } catch (error) {
+
+                console.error(error);
+
+
+                alert(
+                    "Unable to connect to the server."
+                );
+
+            } finally {
+
+                saveButton.disabled = false;
+
+
+                saveButton.innerHTML = `
+
+                    <i class="fa-solid fa-check"></i>
+                    Save Product
+
+                `;
+
+            }
+
+        }
+    );
 
 
 /* =========================================
    VIEW PRODUCT
-   ========================================= */
+========================================= */
 
 function viewProduct(id) {
 
+    const product =
+        allProducts.find(
+            p => p.id === id
+        );
+
+
+    if (!product) {
+
+        alert(
+            "Product not found."
+        );
+
+        return;
+
+    }
+
+
+    let locations = "No stock location";
+
+
+    if (
+        Array.isArray(product.locations) &&
+        product.locations.length
+    ) {
+
+        locations =
+            product.locations
+                .map(location =>
+
+                    `${location.location_name}: ${location.quantity}`
+
+                )
+                .join("\n");
+
+    }
+
+
     alert(
-        "Product ID: " + id +
-        "\n\nProduct details page will be added next."
+
+        "Product: " +
+        product.name +
+
+        "\nSKU: " +
+        product.sku +
+
+        "\nTotal Stock: " +
+        (
+            product.total_stock ??
+            0
+        ) +
+
+        "\n\nStock by Location:\n" +
+        locations
+
     );
 
 }
@@ -1018,27 +2141,82 @@ function viewProduct(id) {
 
 /* =========================================
    ESCAPE HTML
-   ========================================= */
+========================================= */
 
 function escapeHtml(value) {
 
     return String(value)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
 
 }
 
 
 /* =========================================
+   CLOSE MODAL WHEN CLICKING OUTSIDE
+========================================= */
+
+document
+    .getElementById("productModal")
+    .addEventListener(
+        "click",
+        function(event) {
+
+            if (
+                event.target ===
+                this
+            ) {
+
+                closeProductModal();
+
+            }
+
+        }
+    );
+
+
+/* =========================================
    START
-   ========================================= */
+========================================= */
 
 document.addEventListener(
     "DOMContentLoaded",
-    loadProducts
+    async function() {
+
+        await Promise.all([
+
+            loadProducts(),
+
+            loadLocations(),
+
+            loadCategories()
+
+        ]);
+
+    }
 );
 
 </script>

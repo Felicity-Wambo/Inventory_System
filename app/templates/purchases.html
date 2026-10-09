@@ -1,0 +1,2066 @@
+{% extends "base.html" %}
+
+{% block title %}Purchases{% endblock %}
+
+{% block content %}
+
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        gap: 20px;
+    }
+
+    .page-header h1 {
+        margin: 0;
+        font-size: 28px;
+    }
+
+    .page-header p {
+        margin: 6px 0 0;
+        color: #6b7280;
+    }
+
+    .btn {
+        border: none;
+        border-radius: 8px;
+        padding: 10px 16px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .btn-primary {
+        background: #2563eb;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #1d4ed8;
+    }
+
+    .btn-secondary {
+        background: #e5e7eb;
+        color: #111827;
+    }
+
+    .btn-success {
+        background: #16a34a;
+        color: white;
+    }
+
+    .btn-danger {
+        background: #dc2626;
+        color: white;
+    }
+
+    .dashboard-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .card-header h2 {
+        margin: 0;
+        font-size: 20px;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .table th,
+    .table td {
+        padding: 14px 12px;
+        border-bottom: 1px solid #e5e7eb;
+        text-align: left;
+        white-space: nowrap;
+    }
+
+    .table th {
+        background: #f8fafc;
+        color: #374151;
+        font-size: 13px;
+    }
+
+    .table td {
+        font-size: 14px;
+        color: #374151;
+    }
+
+    .status {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .status-draft {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-received {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-cancelled {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 50px 20px;
+        color: #6b7280;
+    }
+
+    /* Modal */
+
+    .modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .modal.show {
+        display: flex;
+    }
+
+    .modal-content {
+        background: white;
+        width: 100%;
+        max-width: 900px;
+        max-height: 90vh;
+        overflow-y: auto;
+        border-radius: 14px;
+        padding: 25px;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .modal-header h2 {
+        margin: 0;
+    }
+
+    .close-btn {
+        border: none;
+        background: transparent;
+        font-size: 25px;
+        cursor: pointer;
+        color: #6b7280;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+    }
+
+    .form-group.full {
+        grid-column: 1 / -1;
+    }
+
+    .form-group label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-size: 14px;
+        outline: none;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        border-color: #2563eb;
+    }
+
+    .form-group textarea {
+        min-height: 80px;
+        resize: vertical;
+    }
+
+    /* Items */
+
+    .items-section {
+        margin-top: 25px;
+    }
+
+    .items-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+
+    .items-header h3 {
+        margin: 0;
+    }
+
+    .purchase-item {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr auto;
+        gap: 10px;
+        align-items: end;
+        margin-bottom: 10px;
+        padding: 12px;
+        background: #f8fafc;
+        border-radius: 8px;
+    }
+
+    .purchase-item .form-group {
+        margin: 0;
+    }
+
+    .remove-item {
+        height: 40px;
+    }
+
+    .summary {
+        margin-top: 20px;
+        margin-left: auto;
+        max-width: 350px;
+        background: #f8fafc;
+        border-radius: 10px;
+        padding: 18px;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        color: #4b5563;
+    }
+
+    .summary-total {
+        border-top: 1px solid #d1d5db;
+        padding-top: 12px;
+        margin-top: 12px;
+        font-size: 18px;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 25px;
+    }
+
+    .message {
+        display: none;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+    }
+
+    .message.show {
+        display: block;
+    }
+
+    .message-success {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .message-error {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 6px;
+    }
+
+    .small-btn {
+        padding: 7px 10px;
+        font-size: 12px;
+    }
+
+    @media (max-width: 768px) {
+
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-group.full {
+            grid-column: auto;
+        }
+
+        .purchase-item {
+            grid-template-columns: 1fr;
+        }
+
+        .summary {
+            max-width: none;
+        }
+    }
+</style>
+
+
+<div class="page-header">
+
+    <div>
+        <h1>Purchases</h1>
+        <p>
+            Create purchase orders, manage supplier purchases
+            and receive stock.
+        </p>
+    </div>
+
+    <button
+        class="btn btn-primary"
+        onclick="openPurchaseModal()"
+    >
+        <i class="fa-solid fa-plus"></i>
+        New Purchase
+    </button>
+
+</div>
+
+
+<div
+    id="pageMessage"
+    class="message"
+></div>
+
+
+<div class="dashboard-card">
+
+    <div class="card-header">
+
+        <h2>Purchase Orders</h2>
+
+        <button
+            class="btn btn-secondary"
+            onclick="loadPurchases()"
+        >
+            <i class="fa-solid fa-refresh"></i>
+            Refresh
+        </button>
+
+    </div>
+
+
+    <div class="table-container">
+
+        <table class="table">
+
+            <thead>
+
+                <tr>
+                    <th>PO Number</th>
+                    <th>Supplier</th>
+                    <th>Location</th>
+                    <th>Status</th>
+                    <th>Subtotal</th>
+                    <th>Tax</th>
+                    <th>Total</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+
+            </thead>
+
+            <tbody id="purchaseTable">
+
+                <tr>
+                    <td
+                        colspan="9"
+                        class="empty-state"
+                    >
+                        Loading purchases...
+                    </td>
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     CREATE PURCHASE MODAL
+===================================================== -->
+
+<div
+    id="purchaseModal"
+    class="modal"
+>
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h2>Create Purchase</h2>
+
+            <button
+                class="close-btn"
+                onclick="closePurchaseModal()"
+            >
+                &times;
+            </button>
+
+        </div>
+
+
+        <div
+            id="formMessage"
+            class="message"
+        ></div>
+
+
+        <form id="purchaseForm">
+
+
+            <!-- BASIC INFORMATION -->
+
+            <div class="form-grid">
+
+                <div class="form-group">
+
+                    <label for="supplierSelect">
+                        Supplier *
+                    </label>
+
+                    <select
+                        id="supplierSelect"
+                        required
+                    >
+
+                        <option value="">
+                            Select Supplier
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="locationSelect">
+                        Receiving Location *
+                    </label>
+
+                    <select
+                        id="locationSelect"
+                        required
+                    >
+
+                        <option value="">
+                            Select Location
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="invoiceNumber">
+                        Invoice Number
+                    </label>
+
+                    <input
+                        type="text"
+                        id="invoiceNumber"
+                        placeholder="Supplier invoice number"
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="tax">
+                        Tax
+                    </label>
+
+                    <input
+                        type="number"
+                        id="tax"
+                        min="0"
+                        step="0.01"
+                        value="0"
+                        placeholder="0.00"
+                    >
+
+                </div>
+
+
+                <div class="form-group full">
+
+                    <label for="purchaseNotes">
+                        Notes
+                    </label>
+
+                    <textarea
+                        id="purchaseNotes"
+                        placeholder="Additional notes..."
+                    ></textarea>
+
+                </div>
+
+            </div>
+
+
+            <!-- PURCHASE ITEMS -->
+
+            <div class="items-section">
+
+                <div class="items-header">
+
+                    <h3>Purchase Items</h3>
+
+                    <button
+                        type="button"
+                        class="btn btn-secondary"
+                        onclick="addPurchaseItem()"
+                    >
+                        <i class="fa-solid fa-plus"></i>
+                        Add Item
+                    </button>
+
+                </div>
+
+
+                <div id="purchaseItems">
+
+                </div>
+
+            </div>
+
+
+            <!-- SUMMARY -->
+
+            <div class="summary">
+
+                <div class="summary-row">
+
+                    <span>Subtotal</span>
+
+                    <strong id="subtotalDisplay">
+                        KSh 0.00
+                    </strong>
+
+                </div>
+
+
+                <div class="summary-row">
+
+                    <span>Tax</span>
+
+                    <strong id="taxDisplay">
+                        KSh 0.00
+                    </strong>
+
+                </div>
+
+
+                <div
+                    class="summary-row summary-total"
+                >
+
+                    <span>Total</span>
+
+                    <strong id="totalDisplay">
+                        KSh 0.00
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- FOOTER -->
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    onclick="closePurchaseModal()"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="submit"
+                    class="btn btn-primary"
+                >
+                    <i class="fa-solid fa-save"></i>
+                    Create Purchase
+                </button>
+
+            </div>
+
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<script>
+
+let products = [];
+let suppliers = [];
+let locations = [];
+
+let purchaseItemCounter = 0;
+
+
+/* =====================================================
+   AUTHENTICATION
+===================================================== */
+
+function getToken() {
+
+    return localStorage.getItem("access_token");
+
+}
+
+
+/* =====================================================
+   PAGE INITIALIZATION
+===================================================== */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    async function () {
+
+        await loadSuppliers();
+
+        await loadLocations();
+
+        await loadProducts();
+
+        await loadPurchases();
+
+    }
+);
+
+
+/* =====================================================
+   MESSAGE
+===================================================== */
+
+function showMessage(
+    elementId,
+    message,
+    type = "success"
+) {
+
+    const element =
+        document.getElementById(elementId);
+
+    element.textContent = message;
+
+    element.className =
+        "message show " +
+        (
+            type === "success"
+                ? "message-success"
+                : "message-error"
+        );
+
+}
+
+
+function hideMessage(elementId) {
+
+    const element =
+        document.getElementById(elementId);
+
+    element.className = "message";
+
+}
+
+
+/* =====================================================
+   LOAD SUPPLIERS
+===================================================== */
+
+async function loadSuppliers() {
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/suppliers",
+                {
+                    headers: {
+                        Authorization:
+                            "Bearer " + getToken()
+                    }
+                }
+            );
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Failed to load suppliers"
+            );
+
+        }
+
+        suppliers =
+            await response.json();
+
+        const select =
+            document.getElementById(
+                "supplierSelect"
+            );
+
+        select.innerHTML =
+            `<option value="">
+                Select Supplier
+            </option>`;
+
+        suppliers.forEach(
+            supplier => {
+
+                select.innerHTML += `
+                    <option value="${supplier.id}">
+                        ${escapeHtml(
+                            supplier.name
+                        )}
+                    </option>
+                `;
+
+            }
+        );
+
+    } catch (error) {
+
+        console.error(error);
+
+        showMessage(
+            "pageMessage",
+            "Unable to load suppliers.",
+            "error"
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   LOAD LOCATIONS
+===================================================== */
+
+async function loadLocations() {
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/locations",
+                {
+                    headers: {
+                        Authorization:
+                            "Bearer " + getToken()
+                    }
+                }
+            );
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Failed to load locations"
+            );
+
+        }
+
+        locations =
+            await response.json();
+
+        const select =
+            document.getElementById(
+                "locationSelect"
+            );
+
+        select.innerHTML =
+            `<option value="">
+                Select Location
+            </option>`;
+
+        locations.forEach(
+            location => {
+
+                select.innerHTML += `
+                    <option value="${location.id}">
+                        ${escapeHtml(
+                            location.name
+                        )}
+                    </option>
+                `;
+
+            }
+        );
+
+    } catch (error) {
+
+        console.error(error);
+
+        showMessage(
+            "pageMessage",
+            "Unable to load locations.",
+            "error"
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   LOAD PRODUCTS
+===================================================== */
+
+async function loadProducts() {
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/products",
+                {
+                    headers: {
+                        Authorization:
+                            "Bearer " + getToken()
+                    }
+                }
+            );
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Failed to load products"
+            );
+
+        }
+
+        const data =
+            await response.json();
+
+        /*
+         * Supports either:
+         *
+         * [
+         *   {...}
+         * ]
+         *
+         * or:
+         *
+         * {
+         *   products: [...]
+         * }
+         */
+
+        products =
+            Array.isArray(data)
+                ? data
+                : (
+                    data.products || []
+                );
+
+    } catch (error) {
+
+        console.error(error);
+
+        showMessage(
+            "pageMessage",
+            "Unable to load products.",
+            "error"
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   OPEN PURCHASE MODAL
+===================================================== */
+
+async function openPurchaseModal() {
+
+    hideMessage("formMessage");
+
+    document
+        .getElementById("purchaseModal")
+        .classList
+        .add("show");
+
+    document
+        .getElementById("purchaseForm")
+        .reset();
+
+    document
+        .getElementById("purchaseItems")
+        .innerHTML = "";
+
+    purchaseItemCounter = 0;
+
+    updateSummary();
+
+    await loadSuppliers();
+
+    await loadLocations();
+
+    await loadProducts();
+
+    addPurchaseItem();
+
+}
+
+
+/* =====================================================
+   CLOSE PURCHASE MODAL
+===================================================== */
+
+function closePurchaseModal() {
+
+    document
+        .getElementById("purchaseModal")
+        .classList
+        .remove("show");
+
+}
+
+
+/* =====================================================
+   ADD PURCHASE ITEM
+===================================================== */
+
+function addPurchaseItem() {
+
+    purchaseItemCounter++;
+
+    const itemId =
+        purchaseItemCounter;
+
+    const container =
+        document.getElementById(
+            "purchaseItems"
+        );
+
+
+    const item =
+        document.createElement("div");
+
+    item.className =
+        "purchase-item";
+
+    item.id =
+        `purchase-item-${itemId}`;
+
+
+    item.innerHTML = `
+
+        <div class="form-group">
+
+            <label>
+                Product *
+            </label>
+
+            <select
+                class="product-select"
+                data-item="${itemId}"
+                required
+                onchange="updateItemTotal(${itemId})"
+            >
+
+                <option value="">
+                    Select Product
+                </option>
+
+                ${products.map(
+                    product => `
+                        <option value="${product.id}">
+                            ${escapeHtml(
+                                product.name
+                            )}
+                        </option>
+                    `
+                ).join("")}
+
+            </select>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                Quantity *
+            </label>
+
+            <input
+                type="number"
+                class="quantity-input"
+                data-item="${itemId}"
+                min="1"
+                value="1"
+                required
+                oninput="updateItemTotal(${itemId})"
+            >
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                Unit Cost *
+            </label>
+
+            <input
+                type="number"
+                class="cost-input"
+                data-item="${itemId}"
+                min="0"
+                step="0.01"
+                value="0"
+                required
+                oninput="updateItemTotal(${itemId})"
+            >
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                Total
+            </label>
+
+            <input
+                type="text"
+                class="item-total"
+                data-item="${itemId}"
+                value="0.00"
+                readonly
+            >
+
+        </div>
+
+
+        <button
+            type="button"
+            class="btn btn-danger remove-item"
+            onclick="removePurchaseItem(${itemId})"
+        >
+
+            <i class="fa-solid fa-trash"></i>
+
+        </button>
+
+    `;
+
+
+    container.appendChild(item);
+
+    updateSummary();
+
+}
+
+
+/* =====================================================
+   REMOVE PURCHASE ITEM
+===================================================== */
+
+function removePurchaseItem(itemId) {
+
+    const item =
+        document.getElementById(
+            `purchase-item-${itemId}`
+        );
+
+    if (item) {
+
+        item.remove();
+
+    }
+
+    updateSummary();
+
+}
+
+
+/* =====================================================
+   UPDATE ITEM TOTAL
+===================================================== */
+
+function updateItemTotal(itemId) {
+
+    const quantity =
+        Number(
+            document.querySelector(
+                `.quantity-input[data-item="${itemId}"]`
+            )?.value || 0
+        );
+
+    const cost =
+        Number(
+            document.querySelector(
+                `.cost-input[data-item="${itemId}"]`
+            )?.value || 0
+        );
+
+    const total =
+        quantity * cost;
+
+
+    const totalInput =
+        document.querySelector(
+            `.item-total[data-item="${itemId}"]`
+        );
+
+    if (totalInput) {
+
+        totalInput.value =
+            total.toFixed(2);
+
+    }
+
+    updateSummary();
+
+}
+
+
+/* =====================================================
+   UPDATE PURCHASE SUMMARY
+===================================================== */
+
+function updateSummary() {
+
+    let subtotal = 0;
+
+
+    document
+        .querySelectorAll(".purchase-item")
+        .forEach(item => {
+
+            const quantity =
+                Number(
+                    item.querySelector(
+                        ".quantity-input"
+                    )?.value || 0
+                );
+
+            const cost =
+                Number(
+                    item.querySelector(
+                        ".cost-input"
+                    )?.value || 0
+                );
+
+            subtotal +=
+                quantity * cost;
+
+        });
+
+
+    const tax =
+        Number(
+            document.getElementById(
+                "tax"
+            )?.value || 0
+        );
+
+
+    const total =
+        subtotal + tax;
+
+
+    document.getElementById(
+        "subtotalDisplay"
+    ).textContent =
+        formatCurrency(subtotal);
+
+
+    document.getElementById(
+        "taxDisplay"
+    ).textContent =
+        formatCurrency(tax);
+
+
+    document.getElementById(
+        "totalDisplay"
+    ).textContent =
+        formatCurrency(total);
+
+}
+
+
+/* =====================================================
+   TAX CHANGE
+===================================================== */
+
+document.addEventListener(
+    "input",
+    function(event) {
+
+        if (
+            event.target.id === "tax"
+        ) {
+
+            updateSummary();
+
+        }
+
+    }
+);
+
+
+/* =====================================================
+   CREATE PURCHASE
+===================================================== */
+
+document
+    .getElementById("purchaseForm")
+    .addEventListener(
+        "submit",
+        async function(event) {
+
+            event.preventDefault();
+
+            hideMessage("formMessage");
+
+
+            const supplierId =
+                Number(
+                    document.getElementById(
+                        "supplierSelect"
+                    ).value
+                );
+
+
+            const locationId =
+                Number(
+                    document.getElementById(
+                        "locationSelect"
+                    ).value
+                );
+
+
+            const invoiceNumber =
+                document.getElementById(
+                    "invoiceNumber"
+                ).value.trim();
+
+
+            const notes =
+                document.getElementById(
+                    "purchaseNotes"
+                ).value.trim();
+
+
+            const tax =
+                Number(
+                    document.getElementById(
+                        "tax"
+                    ).value || 0
+                );
+
+
+            if (!supplierId) {
+
+                showMessage(
+                    "formMessage",
+                    "Please select a supplier.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            if (!locationId) {
+
+                showMessage(
+                    "formMessage",
+                    "Please select a receiving location.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            const itemElements =
+                document.querySelectorAll(
+                    ".purchase-item"
+                );
+
+
+            if (itemElements.length === 0) {
+
+                showMessage(
+                    "formMessage",
+                    "Please add at least one product.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            const items = [];
+
+
+            let invalidItem = false;
+
+
+            itemElements.forEach(
+                item => {
+
+                    const productId =
+                        Number(
+                            item.querySelector(
+                                ".product-select"
+                            ).value
+                        );
+
+                    const quantity =
+                        Number(
+                            item.querySelector(
+                                ".quantity-input"
+                            ).value
+                        );
+
+                    const unitCost =
+                        Number(
+                            item.querySelector(
+                                ".cost-input"
+                            ).value
+                        );
+
+
+                    if (
+                        !productId ||
+                        quantity <= 0 ||
+                        unitCost < 0
+                    ) {
+
+                        invalidItem = true;
+
+                        return;
+
+                    }
+
+
+                    items.push({
+                        product_id:
+                            productId,
+
+                        quantity:
+                            quantity,
+
+                        unit_cost:
+                            unitCost
+                    });
+
+                }
+            );
+
+
+            if (invalidItem) {
+
+                showMessage(
+                    "formMessage",
+                    "Please complete all purchase items correctly.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            const payload = {
+
+                supplier_id:
+                    supplierId,
+
+                location_id:
+                    locationId,
+
+                invoice_number:
+                    invoiceNumber || null,
+
+                tax:
+                    tax,
+
+                notes:
+                    notes || null,
+
+                items:
+                    items
+
+            };
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/api/purchases",
+                        {
+                            method: "POST",
+
+                            headers: {
+
+                                "Content-Type":
+                                    "application/json",
+
+                                "Authorization":
+                                    "Bearer " +
+                                    getToken()
+
+                            },
+
+                            body:
+                                JSON.stringify(
+                                    payload
+                                )
+
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.detail ||
+                        "Failed to create purchase."
+                    );
+
+                }
+
+
+                showMessage(
+                    "pageMessage",
+                    "Purchase created successfully.",
+                    "success"
+                );
+
+
+                closePurchaseModal();
+
+
+                await loadPurchases();
+
+
+            } catch (error) {
+
+                console.error(error);
+
+                showMessage(
+                    "formMessage",
+                    error.message,
+                    "error"
+                );
+
+            }
+
+        }
+    );
+
+
+/* =====================================================
+   LOAD PURCHASES
+===================================================== */
+
+async function loadPurchases() {
+
+    const table =
+        document.getElementById(
+            "purchaseTable"
+        );
+
+
+    table.innerHTML = `
+
+        <tr>
+
+            <td
+                colspan="9"
+                class="empty-state"
+            >
+                Loading purchases...
+            </td>
+
+        </tr>
+
+    `;
+
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/purchases",
+                {
+                    headers: {
+
+                        Authorization:
+                            "Bearer " +
+                            getToken()
+
+                    }
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.detail ||
+                "Failed to load purchases."
+            );
+
+        }
+
+
+        const purchases =
+            Array.isArray(data)
+                ? data
+                : (
+                    data.purchases || []
+                );
+
+
+        if (purchases.length === 0) {
+
+            table.innerHTML = `
+
+                <tr>
+
+                    <td
+                        colspan="9"
+                        class="empty-state"
+                    >
+
+                        <i
+                            class="fa-solid fa-cart-shopping"
+                            style="font-size:40px;margin-bottom:15px;"
+                        ></i>
+
+                        <br>
+
+                        No purchases found.
+
+                    </td>
+
+                </tr>
+
+            `;
+
+            return;
+
+        }
+
+
+        table.innerHTML = "";
+
+
+        purchases.forEach(
+            purchase => {
+
+                const status =
+                    String(
+                        purchase.status || ""
+                    ).toLowerCase();
+
+
+                let statusClass =
+                    "status-draft";
+
+
+                if (
+                    status === "received"
+                ) {
+
+                    statusClass =
+                        "status-received";
+
+                }
+
+
+                if (
+                    status === "cancelled"
+                ) {
+
+                    statusClass =
+                        "status-cancelled";
+
+                }
+
+
+                let actions = "";
+
+
+                if (
+                    status === "draft"
+                ) {
+
+                    actions = `
+
+                        <button
+                            class="btn btn-success small-btn"
+                            onclick="receivePurchase(${purchase.id})"
+                        >
+
+                            <i
+                                class="fa-solid fa-box-open"
+                            ></i>
+
+                            Receive
+
+                        </button>
+
+                    `;
+
+                } else if (
+                    status === "received"
+                ) {
+
+                    actions = `
+
+                        <span
+                            style="color:#16a34a;font-weight:600;"
+                        >
+
+                            <i
+                                class="fa-solid fa-check"
+                            ></i>
+
+                            Received
+
+                        </span>
+
+                    `;
+
+                } else {
+
+                    actions = `
+
+                        <span
+                            style="color:#6b7280;"
+                        >
+                            No actions
+                        </span>
+
+                    `;
+
+                }
+
+
+                table.innerHTML += `
+
+                    <tr>
+
+                        <td>
+                            <strong>
+                                ${escapeHtml(
+                                    purchase.purchase_number ||
+                                    ""
+                                )}
+                            </strong>
+                        </td>
+
+
+                        <td>
+                            ${escapeHtml(
+                                purchase.supplier ||
+                                "N/A"
+                            )}
+                        </td>
+
+
+                        <td>
+                            ${escapeHtml(
+                                purchase.location ||
+                                "N/A"
+                            )}
+                        </td>
+
+
+                        <td>
+
+                            <span
+                                class="status ${statusClass}"
+                            >
+                                ${escapeHtml(
+                                    purchase.status ||
+                                    "N/A"
+                                )}
+                            </span>
+
+                        </td>
+
+
+                        <td>
+                            ${formatCurrency(
+                                purchase.subtotal || 0
+                            )}
+                        </td>
+
+
+                        <td>
+                            ${formatCurrency(
+                                purchase.tax || 0
+                            )}
+                        </td>
+
+
+                        <td>
+                            <strong>
+                                ${formatCurrency(
+                                    purchase.total_amount ||
+                                    0
+                                )}
+                            </strong>
+                        </td>
+
+
+                        <td>
+                            ${formatDate(
+                                purchase.created_at
+                            )}
+                        </td>
+
+
+                        <td>
+
+                            <div
+                                class="action-buttons"
+                            >
+
+                                ${actions}
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                `;
+
+            }
+        );
+
+
+    } catch (error) {
+
+        console.error(error);
+
+
+        table.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="9"
+                    class="empty-state"
+                >
+
+                    Failed to load purchases.
+
+                    <br><br>
+
+                    ${escapeHtml(
+                        error.message
+                    )}
+
+                </td>
+
+            </tr>
+
+        `;
+
+    }
+
+}
+
+
+/* =====================================================
+   RECEIVE PURCHASE
+===================================================== */
+
+async function receivePurchase(
+    purchaseId
+) {
+
+    const confirmed =
+        confirm(
+            "Are you sure you want to receive this purchase? " +
+            "The quantities will be added to inventory."
+        );
+
+
+    if (!confirmed) {
+
+        return;
+
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                `/api/purchases/${purchaseId}/receive`,
+                {
+                    method: "POST",
+
+                    headers: {
+
+                        Authorization:
+                            "Bearer " +
+                            getToken()
+
+                    }
+
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.detail ||
+                "Failed to receive purchase."
+            );
+
+        }
+
+
+        showMessage(
+            "pageMessage",
+            data.message ||
+            "Purchase received successfully.",
+            "success"
+        );
+
+
+        await loadPurchases();
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        showMessage(
+            "pageMessage",
+            error.message,
+            "error"
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   CURRENCY
+===================================================== */
+
+function formatCurrency(
+    amount
+) {
+
+    return (
+        "KSh " +
+        Number(amount || 0)
+            .toLocaleString(
+                "en-KE",
+                {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }
+            )
+    );
+
+}
+
+
+/* =====================================================
+   DATE
+===================================================== */
+
+function formatDate(
+    dateString
+) {
+
+    if (!dateString) {
+
+        return "N/A";
+
+    }
+
+
+    const date =
+        new Date(dateString);
+
+
+    if (isNaN(date.getTime())) {
+
+        return dateString;
+
+    }
+
+
+    return date.toLocaleDateString(
+        "en-KE",
+        {
+            year: "numeric",
+            month: "short",
+            day: "numeric"
+        }
+    );
+
+}
+
+
+/* =====================================================
+   HTML ESCAPE
+===================================================== */
+
+function escapeHtml(
+    value
+) {
+
+    if (
+        value === null ||
+        value === undefined
+    ) {
+
+        return "";
+
+    }
+
+
+    return String(value)
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
+
+
+/* =====================================================
+   CLOSE MODAL WHEN CLICKING OUTSIDE
+===================================================== */
+
+document
+    .getElementById("purchaseModal")
+    .addEventListener(
+        "click",
+        function(event) {
+
+            if (
+                event.target ===
+                this
+            ) {
+
+                closePurchaseModal();
+
+            }
+
+        }
+    );
+
+</script>
+
+{% endblock %}

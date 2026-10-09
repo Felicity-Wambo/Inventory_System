@@ -1,0 +1,948 @@
+```html
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+    .stockout-page {
+        padding: 24px;
+        max-width: 1400px;
+        margin: 0 auto;
+        color: #1e293b;
+    }
+
+    .page-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 26px;
+    }
+
+    .page-icon {
+        width: 58px;
+        height: 58px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 16px;
+        background: #fff1f2;
+        color: #e11d48;
+        font-size: 28px;
+    }
+
+    .page-header h1 {
+        margin: 0 0 6px;
+        font-size: 28px;
+        font-weight: 750;
+    }
+
+    .page-header p {
+        margin: 0;
+        color: #64748b;
+        font-size: 14px;
+    }
+
+    .stockout-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 26px;
+        margin-bottom: 26px;
+        box-shadow: 0 4px 15px rgba(15, 23, 42, 0.04);
+    }
+
+    .card-heading {
+        margin-bottom: 24px;
+    }
+
+    .card-heading h2 {
+        margin: 0 0 7px;
+        font-size: 20px;
+        font-weight: 700;
+    }
+
+    .card-heading p {
+        color: #64748b;
+        margin: 0;
+        font-size: 14px;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 22px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-width: 0;
+    }
+
+    .form-group.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .form-group label {
+        font-size: 14px;
+        font-weight: 650;
+        color: #334155;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 12px 14px;
+        border: 1px solid #cbd5e1;
+        border-radius: 9px;
+        background: #fff;
+        color: #0f172a;
+        font: inherit;
+        font-size: 14px;
+        outline: none;
+        transition: border-color .2s, box-shadow .2s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+    }
+
+    .form-group select {
+        cursor: pointer;
+        min-height: 45px;
+    }
+
+    .form-group textarea {
+        min-height: 95px;
+        resize: vertical;
+    }
+
+    .field-help {
+        font-size: 12px;
+        color: #64748b;
+    }
+
+    .warning-box {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        padding: 15px;
+        border: 1px solid #fed7aa;
+        background: #fff7ed;
+        color: #9a3412;
+        border-radius: 10px;
+        margin-top: 24px;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .warning-box strong {
+        display: block;
+        margin-bottom: 2px;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 24px;
+        padding-top: 22px;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .btn {
+        border: none;
+        border-radius: 9px;
+        padding: 12px 20px;
+        font-size: 14px;
+        font-weight: 650;
+        cursor: pointer;
+        transition: background .2s, opacity .2s;
+    }
+
+    .btn-danger {
+        background: #e11d48;
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background: #be123c;
+    }
+
+    .btn:disabled {
+        cursor: not-allowed;
+        opacity: .6;
+    }
+
+    .btn-secondary {
+        background: #f1f5f9;
+        color: #334155;
+    }
+
+    .stock-message {
+        display: none;
+        margin-bottom: 20px;
+        padding: 13px 15px;
+        border-radius: 9px;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    .stock-message.success {
+        display: block;
+        background: #f0fdf4;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+    }
+
+    .stock-message.error {
+        display: block;
+        background: #fff1f2;
+        color: #9f1239;
+        border: 1px solid #fecdd3;
+    }
+
+    .stock-message.info {
+        display: block;
+        background: #eff6ff;
+        color: #1d4ed8;
+        border: 1px solid #bfdbfe;
+    }
+
+    .table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .transactions-table {
+        width: 100%;
+        border-collapse: collapse;
+        white-space: nowrap;
+        font-size: 13px;
+    }
+
+    .transactions-table thead {
+        background: #f8fafc;
+    }
+
+    .transactions-table th {
+        color: #64748b;
+        text-align: left;
+        padding: 14px 16px;
+        font-weight: 700;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .transactions-table td {
+        padding: 15px 16px;
+        border-bottom: 1px solid #f1f5f9;
+        color: #334155;
+    }
+
+    .transactions-table tbody tr:hover {
+        background: #f8fafc;
+    }
+
+    .quantity-badge {
+        display: inline-block;
+        background: #fff1f2;
+        color: #be123c;
+        padding: 5px 9px;
+        border-radius: 6px;
+        font-weight: 700;
+    }
+
+    .empty-row {
+        text-align: center;
+        padding: 28px !important;
+        color: #64748b !important;
+    }
+
+    .required {
+        color: #e11d48;
+    }
+
+    @media (max-width: 700px) {
+        .stockout-page {
+            padding: 14px;
+        }
+
+        .stockout-card {
+            padding: 18px;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+            gap: 18px;
+        }
+
+        .form-group.full-width {
+            grid-column: auto;
+        }
+
+        .page-header h1 {
+            font-size: 23px;
+        }
+
+        .form-actions {
+            flex-direction: column-reverse;
+        }
+
+        .form-actions .btn {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="stockout-page">
+
+    <div class="page-header">
+        <div class="page-icon">📤</div>
+        <div>
+            <h1>Stock OUT</h1>
+            <p>Remove products from inventory and record the transaction.</p>
+        </div>
+    </div>
+
+    <div id="message" class="stock-message" role="status" aria-live="polite"></div>
+
+    <section class="stockout-card">
+
+        <div class="card-heading">
+            <h2>Record Stock OUT</h2>
+            <p>Select the product and location, then enter the quantity to remove.</p>
+        </div>
+
+        <form id="stockOutForm">
+
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label for="product">
+                        Product <span class="required">*</span>
+                    </label>
+
+                    <select id="product" name="product_id" required>
+                        <option value="">Loading products...</option>
+                    </select>
+
+                    <span id="productHelp" class="field-help">
+                        Select the product being removed.
+                    </span>
+                </div>
+
+                <div class="form-group">
+                    <label for="location">
+                        Location <span class="required">*</span>
+                    </label>
+
+                    <select id="location" name="location_id" required>
+                        <option value="">Loading locations...</option>
+                    </select>
+
+                    <span id="stockAvailable" class="field-help">
+                        Select a product and location to check stock.
+                    </span>
+                </div>
+
+                <div class="form-group">
+                    <label for="quantity">
+                        Quantity <span class="required">*</span>
+                    </label>
+
+                    <input
+                        type="number"
+                        id="quantity"
+                        name="quantity"
+                        min="1"
+                        step="1"
+                        required
+                        placeholder="Enter quantity to remove"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="unitPrice">Unit Price (KSh)</label>
+
+                    <input
+                        type="number"
+                        id="unitPrice"
+                        name="unit_price"
+                        min="0"
+                        step="0.01"
+                        value="0"
+                        placeholder="0.00"
+                    >
+
+                    <span class="field-help">
+                        Optional transaction value per unit.
+                    </span>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="reference">Reference</label>
+
+                    <input
+                        type="text"
+                        id="reference"
+                        name="reference"
+                        maxlength="100"
+                        placeholder="e.g. OUT-001 or department request"
+                    >
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="notes">Notes</label>
+
+                    <textarea
+                        id="notes"
+                        name="notes"
+                        placeholder="Reason for removing the stock..."
+                    ></textarea>
+                </div>
+
+            </div>
+
+            <div class="warning-box">
+                <span>⚠️</span>
+                <div>
+                    <strong>Important: Stock deduction</strong>
+                    Stock will be deducted from the selected location after this
+                    transaction is recorded. Make sure the quantity is correct.
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="reset" class="btn btn-secondary" id="resetButton">
+                    Clear Form
+                </button>
+
+                <button type="submit" class="btn btn-danger" id="submitButton">
+                    📤 Record Stock OUT
+                </button>
+            </div>
+
+        </form>
+
+    </section>
+
+    <section class="stockout-card">
+
+        <div class="card-heading">
+            <h2>Recent Stock OUT Transactions</h2>
+            <p>A history of products removed from inventory.</p>
+        </div>
+
+        <div class="table-wrapper">
+            <table class="transactions-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Unit Price</th>
+                        <th>Total</th>
+                        <th>Reference</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+
+                <tbody id="transactionsBody">
+                    <tr>
+                        <td colspan="7" class="empty-row">
+                            Loading transactions...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </section>
+
+</div>
+
+<script>
+    /*
+     * AUTHENTICATION
+     * Checks common token keys used by frontend login implementations.
+     */
+    function getAuthToken() {
+        const keys = [
+            "access_token",
+            "token",
+            "accessToken"
+        ];
+
+        for (const key of keys) {
+            const localValue = localStorage.getItem(key);
+            if (localValue) return localValue;
+
+            const sessionValue = sessionStorage.getItem(key);
+            if (sessionValue) return sessionValue;
+        }
+
+        return null;
+    }
+
+    async function apiFetch(url, options = {}) {
+        const token = getAuthToken();
+
+        const headers = {
+            ...(options.headers || {})
+        };
+
+        if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+        }
+
+        if (
+            options.body &&
+            !headers["Content-Type"]
+        ) {
+            headers["Content-Type"] = "application/json";
+        }
+
+        const response = await fetch(url, {
+            ...options,
+            headers
+        });
+
+        if (response.status === 401) {
+            throw new Error(
+                "Your session is not authorized. Please log in again or check the token key used by your login page."
+            );
+        }
+
+        if (response.status === 403) {
+            throw new Error(
+                "You do not have permission to perform this operation."
+            );
+        }
+
+        return response;
+    }
+
+    function showMessage(message, type = "info") {
+        const element = document.getElementById("message");
+
+        element.className = `stock-message ${type}`;
+        element.textContent = message;
+        element.scrollIntoView({
+            behavior: "smooth",
+            block: "nearest"
+        });
+    }
+
+    function clearMessage() {
+        const element = document.getElementById("message");
+        element.className = "stock-message";
+        element.textContent = "";
+    }
+
+    async function readError(response) {
+        try {
+            const data = await response.json();
+
+            if (typeof data.detail === "string") {
+                return data.detail;
+            }
+
+            if (data.detail) {
+                return JSON.stringify(data.detail);
+            }
+
+            return JSON.stringify(data);
+        } catch {
+            return `Request failed with status ${response.status}`;
+        }
+    }
+
+    /*
+     * LOAD PRODUCTS FROM THE DATABASE
+     */
+    async function loadProducts() {
+        const select = document.getElementById("product");
+
+        select.innerHTML = '<option value="">Loading products...</option>';
+
+        const response = await apiFetch("/api/products");
+
+        if (!response.ok) {
+            throw new Error(await readError(response));
+        }
+
+        const data = await response.json();
+
+        // Support APIs that return either an array or { items: [...] }.
+        const products = Array.isArray(data)
+            ? data
+            : (data.items || data.products || []);
+
+        select.innerHTML = '<option value="">Select Product</option>';
+
+        if (products.length === 0) {
+            select.innerHTML =
+                '<option value="">No products available</option>';
+            return;
+        }
+
+        products.forEach(product => {
+            const option = document.createElement("option");
+            option.value = product.id;
+
+            option.textContent =
+                product.sku
+                    ? `${product.name} (${product.sku})`
+                    : product.name;
+
+            select.appendChild(option);
+        });
+    }
+
+    /*
+     * LOAD LOCATIONS FROM THE DATABASE
+     */
+    async function loadLocations() {
+        const select = document.getElementById("location");
+
+        select.innerHTML = '<option value="">Loading locations...</option>';
+
+        const response = await apiFetch("/api/locations");
+
+        if (!response.ok) {
+            throw new Error(await readError(response));
+        }
+
+        const data = await response.json();
+
+        const locations = Array.isArray(data)
+            ? data
+            : (data.items || data.locations || []);
+
+        select.innerHTML = '<option value="">Select Location</option>';
+
+        if (locations.length === 0) {
+            select.innerHTML =
+                '<option value="">No locations available</option>';
+            return;
+        }
+
+        locations.forEach(location => {
+            const option = document.createElement("option");
+            option.value = location.id;
+            option.textContent = location.name;
+            select.appendChild(option);
+        });
+    }
+
+    /*
+     * CHECK STOCK AT A SELECTED LOCATION
+     *
+     * Uses the product list's total_stock only as a display fallback.
+     * Total stock is not assumed to be the stock at the selected location.
+     */
+    async function updateStockHint() {
+        const productId = document.getElementById("product").value;
+        const locationId = document.getElementById("location").value;
+        const hint = document.getElementById("stockAvailable");
+        const quantityInput = document.getElementById("quantity");
+
+        if (!productId || !locationId) {
+            hint.textContent =
+                "Select a product and location to check stock.";
+            quantityInput.removeAttribute("max");
+            return;
+        }
+
+        hint.textContent =
+            "Confirm available stock before recording the transaction.";
+
+        /*
+         * The current product endpoint may expose total_stock across all
+         * locations. Do not use that value to validate location-specific stock.
+         * The backend will validate available stock when submitting.
+         */
+    }
+
+    /*
+     * LOAD RECENT STOCK OUT TRANSACTIONS
+     */
+    async function loadTransactions() {
+        const tbody = document.getElementById("transactionsBody");
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="empty-row">
+                    Loading transactions...
+                </td>
+            </tr>
+        `;
+
+        const response = await apiFetch(
+            "/api/transactions?transaction_type=stock_out"
+        );
+
+        if (!response.ok) {
+            throw new Error(await readError(response));
+        }
+
+        const data = await response.json();
+
+        const transactions = Array.isArray(data)
+            ? data
+            : (data.items || data.transactions || []);
+
+        tbody.innerHTML = "";
+
+        if (transactions.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="empty-row">
+                        No Stock OUT transactions recorded yet.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        transactions.slice(0, 20).forEach(transaction => {
+            const row = document.createElement("tr");
+
+            const productName =
+                transaction.product_name ||
+                transaction.product?.name ||
+                `Product #${transaction.product_id ?? "—"}`;
+
+            const quantity = Number(transaction.quantity || 0);
+            const unitPrice = Number(transaction.unit_price || 0);
+
+            const total = transaction.total_amount != null
+                ? Number(transaction.total_amount)
+                : quantity * unitPrice;
+
+            let dateText = "—";
+
+            if (transaction.created_at) {
+                const date = new Date(transaction.created_at);
+
+                if (!Number.isNaN(date.getTime())) {
+                    dateText = date.toLocaleString();
+                }
+            }
+
+            const values = [
+                transaction.id ?? "—",
+                productName,
+                quantity,
+                `KSh ${unitPrice.toLocaleString("en-KE", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                })}`,
+                `KSh ${total.toLocaleString("en-KE", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                })}`,
+                transaction.reference || "—",
+                dateText
+            ];
+
+            values.forEach((value, index) => {
+                const cell = document.createElement("td");
+
+                if (index === 2) {
+                    const badge = document.createElement("span");
+                    badge.className = "quantity-badge";
+                    badge.textContent = `-${value}`;
+                    cell.appendChild(badge);
+                } else {
+                    cell.textContent = String(value);
+                }
+
+                row.appendChild(cell);
+            });
+
+            tbody.appendChild(row);
+        });
+    }
+
+    /*
+     * SUBMIT STOCK OUT
+     */
+    document.getElementById("stockOutForm").addEventListener(
+        "submit",
+        async function(event) {
+            event.preventDefault();
+            clearMessage();
+
+            const productId = Number(
+                document.getElementById("product").value
+            );
+
+            const locationId = Number(
+                document.getElementById("location").value
+            );
+
+            const quantity = Number(
+                document.getElementById("quantity").value
+            );
+
+            const unitPrice = Number(
+                document.getElementById("unitPrice").value || 0
+            );
+
+            const reference =
+                document.getElementById("reference").value.trim();
+
+            const notes =
+                document.getElementById("notes").value.trim();
+
+            if (!productId || !locationId) {
+                showMessage(
+                    "Please select both a product and a location.",
+                    "error"
+                );
+                return;
+            }
+
+            if (!Number.isInteger(quantity) || quantity <= 0) {
+                showMessage(
+                    "Quantity must be a whole number greater than zero.",
+                    "error"
+                );
+                return;
+            }
+
+            if (!Number.isFinite(unitPrice) || unitPrice < 0) {
+                showMessage(
+                    "Unit price must be zero or greater.",
+                    "error"
+                );
+                return;
+            }
+
+            const submitButton =
+                document.getElementById("submitButton");
+
+            submitButton.disabled = true;
+            submitButton.textContent = "Recording transaction...";
+
+            const payload = {
+                product_id: productId,
+                transaction_type: "stock_out",
+                quantity: quantity,
+                from_location_id: locationId,
+                to_location_id: null,
+                unit_price: unitPrice,
+                reference: reference,
+                notes: notes
+            };
+
+            try {
+                const response = await apiFetch(
+                    "/api/transactions",
+                    {
+                        method: "POST",
+                        body: JSON.stringify(payload)
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error(await readError(response));
+                }
+
+                showMessage(
+                    "Stock OUT recorded successfully.",
+                    "success"
+                );
+
+                document.getElementById("stockOutForm").reset();
+
+                await updateStockHint();
+
+                try {
+                    await loadTransactions();
+                } catch (error) {
+                    console.error(
+                        "Transaction saved, but history could not refresh:",
+                        error
+                    );
+                }
+
+            } catch (error) {
+                console.error("Stock OUT error:", error);
+
+                showMessage(
+                    error.message ||
+                    "Failed to record Stock OUT. Please try again.",
+                    "error"
+                );
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = "📤 Record Stock OUT";
+            }
+        }
+    );
+
+    /*
+     * FORM EVENTS
+     */
+    document.getElementById("product").addEventListener(
+        "change",
+        updateStockHint
+    );
+
+    document.getElementById("location").addEventListener(
+        "change",
+        updateStockHint
+    );
+
+    document.getElementById("stockOutForm").addEventListener(
+        "reset",
+        function() {
+            setTimeout(() => {
+                clearMessage();
+                updateStockHint();
+            }, 0);
+        }
+    );
+
+    /*
+     * INITIALIZE PAGE
+     */
+    async function initializePage() {
+        const results = await Promise.allSettled([
+            loadProducts(),
+            loadLocations(),
+            loadTransactions()
+        ]);
+
+        const errors = results.filter(
+            result => result.status === "rejected"
+        );
+
+        if (errors.length > 0) {
+            console.error("Stock OUT page loading errors:", errors);
+
+            const firstError = errors[0].reason;
+
+            showMessage(
+                firstError?.message ||
+                "Some data could not be loaded. Please refresh the page.",
+                "error"
+            );
+        }
+
+        updateStockHint();
+    }
+
+    initializePage();
+</script>
+
+{% endblock %}
+```

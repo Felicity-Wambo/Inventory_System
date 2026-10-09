@@ -128,3 +128,33 @@ def reports_page(request: Request):
         "reports.html",
         {"request": request}
     )
+@app.get("/products")
+def products_page(request: Request):
+    return templates.TemplateResponse(
+        "products.html",
+        {"request": request}
+    )
+@app.get("/purchases")
+def purchases_page(request: Request):
+    return templates.TemplateResponse(
+        "purchases.html",
+        {"request": request}
+    )
+@app.get("/stock-out", response_class=HTMLResponse)
+def stock_out_page(request: Request):
+    return templates.TemplateResponse(
+        "stock_out.html",
+        {"request": request}
+    )
+@app.get("/stock-out", response_class=HTMLResponse)
+def stock_out_page(request: Request):
+    return templates.TemplateResponse(
+        "stock_out.html",
+        {"request": request}
+    )
+@app.get("/pos", response_class=HTMLResponse)
+def pos_page(request: Request):
+    return templates.TemplateResponse(
+        "pos.html",
+        {"request": request}
+    )
